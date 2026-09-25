@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndAdminSeeder::class,
-            // DemoMenuSeeder::class, // sample categories/menu items — added in the feature-modules phase
+            DemoMenuSeeder::class,
         ]);
     }
 }

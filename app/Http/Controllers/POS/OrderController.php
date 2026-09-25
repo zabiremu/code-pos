@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\POS;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiningTable;
+use App\Models\MenuItem;
 use App\Models\Order;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Waiter-facing order taking. This is the Phase 3 module from the build
- * plan (order taking + KDS) — scaffolded here with the core CRUD so the
- * feature work has a starting shape; ticket routing to the kitchen display
- * and course hold/fire logic land with the KDS work itself.
+ * Waiter-facing order taking. Line items are handled by OrderItemController;
+ * this controller owns the order lifecycle (open -> sent -> served -> billed
+ * -> closed) and keeps the table's floor-plan status in sync with it.
  */
 class OrderController extends Controller
 {
@@ -24,6 +25,13 @@ class OrderController extends Controller
             ->paginate(20);
 
         return view('pos.orders.index', compact('orders'));
+    }
+
+    public function create(): View
+    {
+        $tables = DiningTable::where('status', 'free')->with('floor')->get();
+
+        return view('pos.orders.create', compact('tables'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -39,13 +47,34 @@ class OrderController extends Controller
             'status' => 'open',
         ]);
 
+        if ($order->table_id) {
+            DiningTable::whereKey($order->table_id)->update(['status' => 'occupied']);
+        }
+
         return redirect()->route('pos.orders.show', $order);
     }
 
     public function show(Order $order): View
     {
         $order->load(['table', 'items.menuItem', 'items.variant', 'items.modifiers']);
+        $menuItems = MenuItem::where('is_available', true)->with(['variants', 'modifierGroups.modifiers'])->orderBy('name')->get();
 
-        return view('pos.orders.show', compact('order'));
+        return view('pos.orders.show', compact('order', 'menuItems'));
+    }
+
+    /** Marks the order closed and frees its table, once its bill(s) are fully paid. */
+    public function close(Order $order): RedirectResponse
+    {
+        if ($order->bills()->where('status', '!=', 'paid')->exists()) {
+            return back()->withErrors(['order' => 'This order still has an unpaid bill.']);
+        }
+
+        $order->update(['status' => 'closed']);
+
+        if ($order->table_id) {
+            DiningTable::whereKey($order->table_id)->update(['status' => 'free']);
+        }
+
+        return redirect()->route('pos.orders.index')->with('status', "Order #{$order->id} closed.");
     }
 }
