@@ -1,26 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Requirements &middot; Installer</title>
-@vite(['resources/css/app.css', 'resources/js/app.js'])</head>
-<body class="bg-gray-50 min-h-screen p-6">
-    <div class="max-w-lg mx-auto bg-white rounded-lg shadow p-8">
-        <h1 class="text-lg font-semibold mb-4">Server requirements</h1>
+<x-layouts.install :step="2" title="Requirements">
+    <div class="card p-8">
+        <h2 class="text-lg font-semibold mb-4">Server requirements</h2>
 
-        <ul class="space-y-1 text-sm mb-6">
-            <li class="{{ $phpOk ? 'text-green-700' : 'text-red-600' }}">PHP ≥ 8.2 {{ $phpOk ? '✓' : '✗' }}</li>
+        <ul class="space-y-1.5 text-sm mb-6">
+            <li class="flex items-center gap-2 {{ $phpOk ? 'text-green-700' : 'text-primary-600' }}">
+                <span>{{ $phpOk ? '✓' : '✗' }}</span> PHP ≥ 8.2
+            </li>
             @foreach ($extensions as $ext => $ok)
-                <li class="{{ $ok ? 'text-green-700' : 'text-red-600' }}">{{ $ext }} extension {{ $ok ? '✓' : '✗' }}</li>
+                <li class="flex items-center gap-2 {{ $ok ? 'text-green-700' : 'text-primary-600' }}">
+                    <span>{{ $ok ? '✓' : '✗' }}</span> {{ $ext }} extension
+                </li>
             @endforeach
             @foreach ($writable as $path => $ok)
-                <li class="{{ $ok ? 'text-green-700' : 'text-red-600' }}">{{ $path }} writable {{ $ok ? '✓' : '✗' }}</li>
+                <li class="flex items-center gap-2 {{ $ok ? 'text-green-700' : 'text-primary-600' }}">
+                    <span>{{ $ok ? '✓' : '✗' }}</span> {{ $path }} writable
+                </li>
             @endforeach
         </ul>
 
         @if ($allOk)
-            <a href="{{ route('install.purchase-code') }}" class="inline-block bg-gray-900 text-white text-sm rounded px-5 py-2">Continue</a>
+            <a href="{{ route('install.purchase-code') }}" class="inline-block btn-primary">Continue</a>
         @else
-            <p class="text-sm text-red-600">Fix the items above, then refresh this page.</p>
+            <p class="alert-error">Fix the items above, then refresh this page.</p>
         @endif
     </div>
-</body>
-</html>
+</x-layouts.install>

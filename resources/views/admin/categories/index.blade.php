@@ -1,25 +1,25 @@
 <x-layouts.admin :title="'Categories'">
-    <div class="bg-white rounded-lg shadow p-5 mb-6">
+    <div class="card p-5 mb-6">
         <form method="POST" action="{{ route('admin.categories.store') }}" class="flex flex-wrap gap-3 items-end">
             @csrf
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Name</label>
-                <input type="text" name="name" required class="rounded border-gray-300 text-sm">
+                <label class="field-label">Name</label>
+                <input type="text" name="name" required class="input">
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Parent</label>
-                <select name="parent_id" class="rounded border-gray-300 text-sm">
+                <label class="field-label">Parent</label>
+                <select name="parent_id" class="input">
                     <option value="">None</option>
                     @foreach ($categories as $c)
                         <option value="{{ $c->id }}">{{ $c->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <button class="bg-gray-900 text-white text-sm rounded px-4 py-2">Add category</button>
+            <button class="btn-primary">Add category</button>
         </form>
     </div>
 
-    <div class="bg-white rounded-lg shadow divide-y">
+    <div class="card divide-y">
         @foreach ($categories as $category)
             <div class="flex items-center justify-between px-5 py-3">
                 <div>
@@ -30,7 +30,7 @@
                 </div>
                 <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" onsubmit="return confirm('Delete this category?')">
                     @csrf @method('DELETE')
-                    <button class="text-sm text-red-600">Delete</button>
+                    <button class="btn-ghost">Delete</button>
                 </form>
             </div>
         @endforeach

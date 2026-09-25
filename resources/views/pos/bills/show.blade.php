@@ -1,5 +1,5 @@
 <x-layouts.admin :title="'Bill #'.$bill->id">
-    <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6 font-mono text-sm">
+    <div class="max-w-md mx-auto card p-6 font-mono text-sm">
         <div class="text-center mb-4">
             <p class="font-semibold text-base">{{ config('app.name') }}</p>
             <p class="text-xs text-gray-500">Order #{{ $bill->order_id }} &middot; {{ $bill->order->table?->label ?? ucfirst($bill->order->type) }}</p>
@@ -34,22 +34,22 @@
         <div class="flex justify-between text-gray-500">
             <span>Paid</span><span>{{ number_format($bill->amountPaid(), 2) }}</span>
         </div>
-        <div class="flex justify-between font-semibold {{ $bill->balanceDue() > 0 ? 'text-red-600' : 'text-green-700' }}">
+        <div class="flex justify-between font-semibold {{ $bill->balanceDue() > 0 ? 'text-primary-600' : 'text-green-700' }}">
             <span>Balance</span><span>{{ number_format($bill->balanceDue(), 2) }}</span>
         </div>
 
         @if ($bill->balanceDue() > 0)
             <form method="POST" action="{{ route('pos.bills.payments.store', $bill) }}" class="mt-5 space-y-2 font-sans">
                 @csrf
-                <select name="method" class="w-full rounded border-gray-300 text-sm">
+                <select name="method" class="w-full input">
                     <option value="cash">Cash</option>
                     <option value="card">Card</option>
                     <option value="mobile_wallet">Mobile wallet</option>
                     <option value="other">Other</option>
                 </select>
-                <input type="number" step="0.01" name="amount" value="{{ $bill->balanceDue() }}" class="w-full rounded border-gray-300 text-sm">
-                <input type="text" name="reference" placeholder="Reference (optional)" class="w-full rounded border-gray-300 text-sm">
-                <button class="w-full bg-green-700 text-white text-sm rounded px-3 py-2">Record payment</button>
+                <input type="number" step="0.01" name="amount" value="{{ $bill->balanceDue() }}" class="w-full input">
+                <input type="text" name="reference" placeholder="Reference (optional)" class="w-full input">
+                <button class="w-full btn-success">Record payment</button>
             </form>
         @else
             <p class="mt-5 text-center text-green-700 font-sans">Paid in full.</p>
