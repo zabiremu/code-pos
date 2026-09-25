@@ -1,0 +1,32 @@
+Restaurant POS
+Copyright (c) Zabir Raihan (Envato author: Zabir_Raihan)
+
+This item is licensed under the terms of the Envato Market license you
+purchased it under - either the Regular License or the Extended License,
+as selected at the time of purchase on CodeCanyon.
+
+Full license terms:
+  Regular License:  https://codecanyon.net/licenses/standard
+  Extended License: https://codecanyon.net/licenses/extended
+
+In short, under the Regular License you may use this item to create one
+single end product for yourself or for one client, to be used by end
+users who are not charged for access to it. The Extended License permits
+the end product to charge users a fee for access. Neither license
+permits reselling, sublicensing, or redistributing the source code of
+this item itself, standalone or as part of a competing product.
+
+This code is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall
+the author be liable for any claim, damages, or other liability arising
+from, out of, or in connection with the software or the use or other
+dealings in the software.
+
+--------------------------------------------------------------------------
+
+Third-party packages this item depends on are each under their own
+license (all are MIT - see README.md's "Third-party packages & licenses"
+section for the full list). Those licenses apply to their respective
+packages independently of the license above, which covers this item's
+own original source code only.
