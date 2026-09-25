@@ -1,0 +1,20 @@
+# Only needed when your hosting's Document Root points at this project's
+# root folder instead of its `public/` subfolder (common on shared hosting
+# where you can't — or don't want to — change the Document Root setting).
+# It transparently routes every request into public/ so URLs never show
+# "/public/" in them, e.g. https://yourdomain.com/login instead of
+# https://yourdomain.com/public/login.
+#
+# If your Document Root is already set to this project's public/ folder,
+# this file is inert and can be deleted — public/.htaccess handles routing
+# on its own in that setup.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Already inside /public/ (or requesting a file that lives there
+    # directly, e.g. /public/build/assets/app.js) - don't rewrite again.
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    RewriteRule ^(.*)$ /public/$1 [L]
+</IfModule>

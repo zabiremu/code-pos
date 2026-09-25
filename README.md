@@ -52,15 +52,24 @@ locked shut once `storage/installed.lock` exists, so it only runs on a truly
 fresh deploy. Delete that file to re-open it (e.g. after cloning fresh onto
 a server).
 
-> I couldn't run `composer install` or `npm install` from the sandbox this
-> was built in — its network policy blocks Packagist — so this is written
-> out carefully (every PHP file passes `php -l`, `composer.json` /
-> `package.json` are valid JSON) but not execution-tested against a real
-> `vendor/`. Run it through once end to end and tell me what breaks — my
-> best guesses for rough edges: exact `spatie/laravel-permission` config
-> keys drifting from what `vendor:publish` generates for whatever version
-> `composer install` resolves, and Tailwind/Alpine class or import paths
-> once real builds run through Vite.
+### Shared hosting: no "/public/" in the URL
+
+If your host's Document Root points at this project's root folder instead of
+its `public/` subfolder (common on cPanel shared hosting, and not always
+something you can change), the repo ships a root-level `.htaccess` that
+transparently routes every request into `public/` at the web-server level —
+so `https://yourdomain.com/login` works instead of
+`https://yourdomain.com/public/login`, with no Document Root change needed.
+If your Document Root *is* already set to `public/`, this file is inert and
+safe to leave in place (or delete).
+
+> `composer install` and `npm run build` have both been run against this
+> repo and it boots end-to-end on a live cPanel deploy (see commit history)
+> — `vendor/` still isn't committed (install it yourself), but
+> `public/build/` (the compiled Tailwind/Alpine output) *is* committed, since
+> most shared hosts have no Node.js available to run `npm run build` on the
+> server itself. Re-run `npm run build` and commit the new `public/build/`
+> output any time you change something under `resources/`.
 
 ## What's here
 
