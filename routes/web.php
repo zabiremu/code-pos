@@ -28,7 +28,7 @@ Route::get('/', fn () => redirect()->route('login'));
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::middleware(['role:admin,manager'])
+    Route::middleware(['role:admin|manager'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
         });
 
-    Route::middleware(['role:admin,manager,waiter'])
+    Route::middleware(['role:admin|manager|waiter'])
         ->prefix('pos')
         ->name('pos.')
         ->group(function () {
@@ -86,7 +86,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/bills/{bill}/payments', [PaymentController::class, 'store'])->name('bills.payments.store');
         });
 
-    Route::middleware(['role:admin,manager,kitchen'])
+    Route::middleware(['role:admin|manager|kitchen'])
         ->prefix('kds')
         ->name('kds.')
         ->group(function () {
