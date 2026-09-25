@@ -3,7 +3,7 @@
 A Laravel-based Point-of-Sale system built for restaurants and cafes,
 targeting submission to Envato CodeCanyon.
 
-**Status:** The full Laravel 11 skeleton plus phases 1–6 of the build plan
+**Status:** The full Laravel 12 skeleton plus phases 1–6 of the build plan
 are in this repo — schema, roles, menu & floor management, order taking +
 KDS, billing, reports/stock, the web installer, Envato purchase-code
 verification, and a hand-built login (staff accounts are created by an
@@ -16,7 +16,7 @@ compliance checklist, installer design, packaging, milestones) lives in the
 project's Claude Docs plan.
 
 ## Stack
-- Laravel 11.x on PHP 8.2+
+- Laravel 12.x on PHP 8.2+
 - MySQL 8 (production) / SQLite works for local dev or tests
 - Blade + Alpine.js + Tailwind CSS
 - spatie/laravel-permission (roles), Laravel Sanctum (API auth)
@@ -34,6 +34,13 @@ php artisan migrate --seed   # seeds roles, a demo admin (admin@example.com / pa
 npm install && npm run build
 php artisan serve
 ```
+
+> `laravel/framework` targets `^12.0`, not 11 — every 11.x release up to at
+> least 11.56.1 has unresolved security advisories that will hard-block
+> `composer install` under a policy-enforcing Composer setup (`Your
+> requirements could not be resolved... affected by security advisories`).
+> If you ever see that error, the fix is either bumping the constraint like
+> this, or `composer config policy.advisories.block false` as a stopgap.
 
 That's the whole thing — `bootstrap/app.php` already wires up the `role` and
 `redirect.if.installed` middleware aliases and loads `routes/web.php`,
