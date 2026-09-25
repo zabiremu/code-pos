@@ -19,9 +19,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-| Auth routes (login/register/password reset) are added by Breeze —
-| see README setup steps. Role names match App\Enums\Role. The installer
-| lives in routes/install.php, registered separately in bootstrap/app.php.
+| Login/logout live in routes/auth.php (hand-built — staff accounts are
+| admin-created via Admin\StaffController, there's no self-registration).
+| Role names match App\Enums\Role. The installer lives in
+| routes/install.php. All three are registered in bootstrap/app.php.
 */
 
 Route::get('/', fn () => redirect()->route('login'));
@@ -67,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
         });
 
-    Route::middleware(['role:admin|manager|waiter'])
+    Route::middleware(['role:admin|manager|waiter|cashier'])
         ->prefix('pos')
         ->name('pos.')
         ->group(function () {
