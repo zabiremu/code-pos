@@ -7,7 +7,7 @@
     just the same information-dense settings-page shape.
 --}}
 <x-layouts.admin :title="'My Profile'">
-    <div class="max-w-3xl space-y-6">
+    <div class="max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {{-- Profile information --}}
         <div class="card">
@@ -22,51 +22,51 @@
 
                 <div class="px-5">
                     {{-- Profile picture: read-only initials avatar, WP's "Profile Picture" row --}}
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <p class="text-sm font-medium text-zinc-700">Profile picture</p>
                             <p class="text-xs text-zinc-400 mt-1">Generated from your initials.</p>
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
                             <span class="w-16 h-16 rounded-full bg-primary-600 text-white font-semibold text-xl flex items-center justify-center">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="name" class="text-sm font-medium text-zinc-700">Name</label>
                             <p class="text-xs text-zinc-400 mt-1">Displayed in the sidebar and on tickets you handle.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full max-w-sm input">
+                        <div>
+                            <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full input">
                             @error('name', 'profileUpdate')
                                 <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="email" class="text-sm font-medium text-zinc-700">Email address</label>
                             <p class="text-xs text-zinc-400 mt-1">Used to log in - must stay unique.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full max-w-sm input">
+                        <div>
+                            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full input">
                             @error('email', 'profileUpdate')
                                 <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="phone" class="text-sm font-medium text-zinc-700">Phone</label>
                             <p class="text-xs text-zinc-400 mt-1">Optional - for shift or emergency contact.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="w-full max-w-sm input">
+                        <div>
+                            <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="w-full input">
                             @error('phone', 'profileUpdate')
                                 <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                             @enderror
@@ -93,13 +93,13 @@
                 @method('PUT')
 
                 <div class="px-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="current_password" class="text-sm font-medium text-zinc-700">Current password</label>
                             <p class="text-xs text-zinc-400 mt-1">Confirms it's really you.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <div class="relative w-full max-w-sm">
+                        <div>
+                            <div class="relative w-full">
                                 <input id="current_password" :type="showCurrent ? 'text' : 'password'" name="current_password" required
                                        class="w-full input pr-10" autocomplete="current-password">
                                 <button type="button" x-on:click="showCurrent = !showCurrent"
@@ -114,13 +114,13 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="password" class="text-sm font-medium text-zinc-700">New password</label>
                             <p class="text-xs text-zinc-400 mt-1">At least 8 characters.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <div class="relative w-full max-w-sm">
+                        <div>
+                            <div class="relative w-full">
                                 <input id="password" :type="showNew ? 'text' : 'password'" name="password" required
                                        class="w-full input pr-10" autocomplete="new-password">
                                 <button type="button" x-on:click="showNew = !showNew"
@@ -135,13 +135,13 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 py-5 border-t border-zinc-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-5 border-t border-zinc-100">
                         <div>
                             <label for="password_confirmation" class="text-sm font-medium text-zinc-700">Confirm new password</label>
                             <p class="text-xs text-zinc-400 mt-1">Re-type it to make sure.</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <div class="relative w-full max-w-sm">
+                        <div>
+                            <div class="relative w-full">
                                 <input id="password_confirmation" :type="showConfirm ? 'text' : 'password'" name="password_confirmation" required
                                        class="w-full input pr-10" autocomplete="new-password">
                                 <button type="button" x-on:click="showConfirm = !showConfirm"
