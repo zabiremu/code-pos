@@ -2,8 +2,8 @@
     <div class="max-w-md mx-auto card p-6 font-mono text-sm">
         <div class="text-center mb-4">
             <p class="font-semibold text-base">{{ config('app.name') }}</p>
-            <p class="text-xs text-gray-500">Order #{{ $bill->order_id }} &middot; {{ $bill->order->table?->label ?? ucfirst($bill->order->type) }}</p>
-            <p class="text-xs text-gray-500">{{ $bill->created_at->format('Y-m-d H:i') }}</p>
+            <p class="text-xs text-zinc-500">Order #{{ $bill->order_id }} &middot; {{ $bill->order->table?->label ?? ucfirst($bill->order->type) }}</p>
+            <p class="text-xs text-zinc-500">{{ $bill->created_at->format('Y-m-d H:i') }}</p>
         </div>
 
         <div class="border-t border-dashed my-3"></div>
@@ -31,7 +31,7 @@
         <div class="flex justify-between font-semibold text-base border-t mt-2 pt-2">
             <span>Total</span><span>{{ number_format($bill->grand_total, 2) }}</span>
         </div>
-        <div class="flex justify-between text-gray-500">
+        <div class="flex justify-between text-zinc-500">
             <span>Paid</span><span>{{ number_format($bill->amountPaid(), 2) }}</span>
         </div>
         <div class="flex justify-between font-semibold {{ $bill->balanceDue() > 0 ? 'text-primary-600' : 'text-green-700' }}">

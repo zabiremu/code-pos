@@ -6,7 +6,7 @@
     <title>Log in &middot; {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+<body class="bg-zinc-50 min-h-screen flex items-center justify-center p-6">
     <div class="max-w-sm w-full">
         <div class="flex flex-col items-center mb-6">
             <span class="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center shadow-sm mb-3">
@@ -16,7 +16,7 @@
                 </svg>
             </span>
             <h1 class="text-lg font-semibold text-center">{{ config('app.name') }}</h1>
-            <p class="text-sm text-gray-500">Sign in to your staff account</p>
+            <p class="text-sm text-zinc-500">Sign in to your staff account</p>
         </div>
 
         <div class="card p-8">
@@ -34,15 +34,15 @@
                     <label class="field-label">Password</label>
                     <input type="password" name="password" required class="w-full input">
                 </div>
-                <label class="flex items-center gap-2 text-sm text-gray-600">
-                    <input type="checkbox" name="remember" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                <label class="flex items-center gap-2 text-sm text-zinc-600">
+                    <input type="checkbox" name="remember" class="rounded border-zinc-300 text-primary-600 focus:ring-primary-500">
                     Remember me
                 </label>
                 <button class="w-full btn-primary">Log in</button>
             </form>
         </div>
 
-        <p class="text-center text-xs text-gray-400 mt-6">Accounts are created by an admin — see your manager if you need access.</p>
+        <p class="text-center text-xs text-zinc-400 mt-6">Accounts are created by an admin — see your manager if you need access.</p>
     </div>
 </body>
 </html>

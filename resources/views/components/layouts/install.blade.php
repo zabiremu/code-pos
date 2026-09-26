@@ -10,7 +10,7 @@
     <title>{{ $title ? $title.' &middot; ' : '' }}Installer &middot; {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+<body class="bg-zinc-50 min-h-screen flex items-center justify-center p-6">
     <div class="max-w-lg w-full">
         <div class="flex flex-col items-center mb-6">
             <span class="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center shadow-sm mb-3">
@@ -23,11 +23,11 @@
 
             <div class="flex items-center gap-1.5 mt-4">
                 @foreach ($steps as $i => $label)
-                    <span class="h-1.5 rounded-full transition-colors {{ $i + 1 <= $step ? 'bg-primary-600 w-8' : 'bg-gray-200 w-5' }}"
+                    <span class="h-1.5 rounded-full transition-colors {{ $i + 1 <= $step ? 'bg-primary-600 w-8' : 'bg-zinc-200 w-5' }}"
                           title="{{ $label }}"></span>
                 @endforeach
             </div>
-            <p class="text-xs text-gray-400 mt-2">Step {{ $step }} of {{ count($steps) }} &middot; {{ $steps[$step - 1] ?? '' }}</p>
+            <p class="text-xs text-zinc-400 mt-2">Step {{ $step }} of {{ count($steps) }} &middot; {{ $steps[$step - 1] ?? '' }}</p>
         </div>
 
         {{ $slot }}

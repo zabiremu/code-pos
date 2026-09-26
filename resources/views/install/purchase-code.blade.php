@@ -1,7 +1,7 @@
 <x-layouts.install :step="3" title="Purchase Code">
     <div class="card p-8">
         <h2 class="text-lg font-semibold mb-2">Verify your purchase</h2>
-        <p class="text-sm text-gray-600 mb-4">
+        <p class="text-sm text-zinc-600 mb-4">
             Find your purchase code under Downloads on CodeCanyon. Your Envato
             Personal Token is generated at
             <span class="font-mono">build.envato.com</span> with the "view your

@@ -5,11 +5,11 @@
 
     <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="card p-5">
-            <p class="text-sm text-gray-500">Total sales</p>
+            <p class="text-sm text-zinc-500">Total sales</p>
             <p class="text-3xl font-semibold mt-1">{{ number_format($totalSales, 2) }}</p>
         </div>
         <div class="card p-5">
-            <p class="text-sm text-gray-500">Bills paid</p>
+            <p class="text-sm text-zinc-500">Bills paid</p>
             <p class="text-3xl font-semibold mt-1">{{ $billCount }}</p>
         </div>
     </div>

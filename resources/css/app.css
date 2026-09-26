@@ -12,11 +12,12 @@
 /*
  * Shared UI components - white-dominant theme with red used sparingly as
  * an accent (logo, primary CTA, active nav state), not as a wall-to-wall
- * background color. Statuses get their own semantic colors (gray/blue/
- * amber/green) rather than reusing red for anything that isn't actually
- * an error or a destructive action - reusing one color for "in progress",
- * "occupied", and "cancelled" alike makes all of them equally alarming
- * and none of them readable at a glance.
+ * background color. Statuses run on a deliberately small palette: zinc
+ * (neutral/pending), solid charcoal (actively in progress), green
+ * (terminal success only) and red (urgent action needed or negative) -
+ * four meanings, four colors, instead of a gray/blue/amber/green mix
+ * where the number of hues stopped mapping to anything the eye could
+ * use to prioritize at a glance.
  *
  * Defined here instead of repeated inline in every view, so the whole
  * app stays visually consistent and a palette change is a one-file edit.
@@ -30,10 +31,10 @@
         @apply btn bg-primary-600 text-white shadow-sm shadow-primary-600/20 hover:bg-primary-700 hover:shadow-primary-600/30 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
     }
     .btn-secondary {
-        @apply btn bg-white text-gray-700 ring-1 ring-inset ring-gray-300 shadow-sm hover:bg-gray-50 hover:ring-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+        @apply btn bg-white text-zinc-700 ring-1 ring-inset ring-zinc-300 shadow-sm hover:bg-zinc-50 hover:ring-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
     }
     .btn-ghost {
-        @apply inline-flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-primary-600 transition-colors;
+        @apply inline-flex items-center gap-1 text-sm font-medium text-zinc-400 hover:text-primary-600 transition-colors;
     }
     /* Reserved for money/completion actions (record a payment, generate a
        bill) so they stay visually distinct from the brand-red primary CTA. */
@@ -44,7 +45,7 @@
     /* Surfaces - shadow + inset ring (not a flat border) reads as a
        crisper, more finished edge at this size than border alone. */
     .card {
-        @apply bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5;
+        @apply bg-white rounded-xl shadow-sm ring-1 ring-zinc-900/5;
     }
     .card-body {
         @apply p-5;
@@ -52,10 +53,10 @@
 
     /* Forms */
     .field-label {
-        @apply block text-xs font-medium text-gray-500 mb-1;
+        @apply block text-xs font-medium text-zinc-500 mb-1;
     }
     .input {
-        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500;
+        @apply block w-full rounded-lg border-zinc-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500;
     }
 
     /* Badges (status pills) - a soft fill plus a slightly darker inset
@@ -65,13 +66,13 @@
         @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset;
     }
     .badge-gray {
-        @apply badge bg-gray-100 text-gray-600 ring-gray-500/10;
+        @apply badge bg-zinc-100 text-zinc-600 ring-zinc-500/10;
     }
-    .badge-blue {
-        @apply badge bg-blue-50 text-blue-700 ring-blue-600/20;
-    }
-    .badge-yellow {
-        @apply badge bg-amber-50 text-amber-700 ring-amber-600/20;
+    /* Actively in progress (order sent to kitchen, table occupied) - a
+       solid fill reads as "happening now", distinct from the flat/light
+       gray used for states that are merely waiting to start. */
+    .badge-dark {
+        @apply badge bg-zinc-800 text-white ring-zinc-800;
     }
     .badge-green {
         @apply badge bg-emerald-50 text-emerald-700 ring-emerald-600/20;
@@ -96,7 +97,7 @@
     /* Sidebar nav - light theme: a white sidebar with a soft red tint for
        the active item (plus a left accent bar), not a solid red panel. */
     .nav-link {
-        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 border-l-2 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-colors;
+        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 border-l-2 border-transparent hover:bg-zinc-50 hover:text-zinc-900 transition-colors;
     }
     .nav-link-active {
         @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold bg-primary-50 text-primary-700 border-l-2 border-primary-600;

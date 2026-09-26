@@ -3,13 +3,13 @@
         @foreach ($groups as $group)
             <div class="px-5 py-3">
                 <div class="flex items-center justify-between">
-                    <p class="font-medium">{{ $group->name }} <span class="text-xs text-gray-400">(max {{ $group->max_selectable }}{{ $group->is_required ? ', required' : '' }})</span></p>
+                    <p class="font-medium">{{ $group->name }} <span class="text-xs text-zinc-400">(max {{ $group->max_selectable }}{{ $group->is_required ? ', required' : '' }})</span></p>
                     <form method="POST" action="{{ route('admin.modifier-groups.destroy', $group) }}" onsubmit="return confirm('Delete this group?')">
                         @csrf @method('DELETE')
                         <button class="btn-ghost">Delete</button>
                     </form>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-zinc-500 mt-1">
                     {{ $group->modifiers->map(fn ($m) => $m->name.' (+'.number_format($m->price_delta, 2).')')->join(', ') }}
                 </p>
             </div>
@@ -30,7 +30,7 @@
                 <input type="number" step="0.01" :name="'modifiers['+i+'][price_delta]'" x-model="mod.price_delta" class="input w-28">
             </div>
         </template>
-        <button type="button" @click="modifiers.push({ name: '', price_delta: 0 })" class="text-sm text-gray-500 hover:text-primary-600 transition-colors">+ Add another modifier</button>
+        <button type="button" @click="modifiers.push({ name: '', price_delta: 0 })" class="text-sm text-zinc-500 hover:text-primary-600 transition-colors">+ Add another modifier</button>
 
         <button class="block btn-primary">Save group</button>
     </form>

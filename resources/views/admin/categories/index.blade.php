@@ -25,7 +25,7 @@
                 <div>
                     <span class="font-medium">{{ $category->name }}</span>
                     @if ($category->parent)
-                        <span class="text-xs text-gray-400">under {{ $category->parent->name }}</span>
+                        <span class="text-xs text-zinc-400">under {{ $category->parent->name }}</span>
                     @endif
                 </div>
                 <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" onsubmit="return confirm('Delete this category?')">

@@ -6,7 +6,7 @@
     <title>Kitchen Display &middot; {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-950 text-white min-h-screen"
+<body class="bg-zinc-950 text-white min-h-screen"
       x-data="{
           init() {
               // Falls back to polling every 5s when no broadcast connection is
@@ -28,7 +28,7 @@
             </svg>
             <h1 class="text-lg font-semibold">Kitchen Display{{ $station ? ' — '.ucfirst($station) : '' }}</h1>
         </div>
-        <a href="{{ route('admin.dashboard') }}" class="text-xs text-gray-400 hover:text-white transition-colors">Exit</a>
+        <a href="{{ route('admin.dashboard') }}" class="text-xs text-zinc-400 hover:text-white transition-colors">Exit</a>
     </header>
 
     <div class="p-4">
@@ -37,16 +37,16 @@
                 @php
                     $age = $item->created_at->diffInMinutes(now());
                     $ageColor = $age > 15 ? 'border-primary-500' : ($age > 7 ? 'border-yellow-500' : 'border-green-500');
-                    $ageBadge = $age > 15 ? 'bg-primary-600' : ($age > 7 ? 'bg-yellow-600' : 'bg-gray-700');
+                    $ageBadge = $age > 15 ? 'bg-primary-600' : ($age > 7 ? 'bg-yellow-600' : 'bg-zinc-700');
                 @endphp
-                <div class="bg-gray-900 rounded-xl border-l-4 {{ $ageColor }} p-4 shadow-lg">
-                    <div class="flex justify-between items-center text-sm text-gray-400 mb-2">
+                <div class="bg-zinc-900 rounded-xl border-l-4 {{ $ageColor }} p-4 shadow-lg">
+                    <div class="flex justify-between items-center text-sm text-zinc-400 mb-2">
                         <span>Order #{{ $item->order_id }} &middot; {{ $item->order->table?->label ?? 'Takeaway' }}</span>
                         <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $ageBadge }} text-white">{{ $age }}m</span>
                     </div>
                     <p class="font-semibold text-base">{{ $item->quantity }}× {{ $item->menuItem->name }}</p>
                     @if ($item->modifiers->count())
-                        <p class="text-xs text-gray-400 mt-1">{{ $item->modifiers->pluck('name')->join(', ') }}</p>
+                        <p class="text-xs text-zinc-400 mt-1">{{ $item->modifiers->pluck('name')->join(', ') }}</p>
                     @endif
                     @if ($item->notes)
                         <p class="text-xs text-yellow-400 italic mt-1">{{ $item->notes }}</p>
@@ -54,7 +54,7 @@
 
                     <form method="POST" action="{{ route('kds.tickets.bump', $item) }}" class="mt-3">
                         @csrf
-                        <button class="w-full bg-white text-gray-900 text-sm font-medium rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors">
+                        <button class="w-full bg-white text-zinc-900 text-sm font-medium rounded-lg px-3 py-2 hover:bg-zinc-100 transition-colors">
                             {{ match($item->status) { 'sent' => 'Start preparing', 'preparing' => 'Mark ready', 'ready' => 'Mark served', default => 'Update' } }}
                         </button>
                     </form>
@@ -62,7 +62,7 @@
             @endforeach
 
             @if ($items->isEmpty())
-                <p class="text-gray-500 col-span-full text-center py-16">No tickets right now.</p>
+                <p class="text-zinc-500 col-span-full text-center py-16">No tickets right now.</p>
             @endif
         </div>
     </div>

@@ -8,7 +8,7 @@
             <div class="flex items-center justify-between px-5 py-3">
                 <div>
                     <p class="font-medium">{{ $item->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $item->category->name }} &middot; {{ number_format($item->base_price, 2) }}</p>
+                    <p class="text-xs text-zinc-500">{{ $item->category->name }} &middot; {{ number_format($item->base_price, 2) }}</p>
                 </div>
                 <div class="flex items-center gap-3 text-sm">
                     <span class="{{ $item->is_available ? 'badge-green' : 'badge-gray' }}">

@@ -5,8 +5,8 @@
                 @php
                     $itemBadge = match ($item->status) {
                         'pending' => 'badge-gray',
-                        'sent', 'preparing' => 'badge-blue',
-                        'ready' => 'badge-yellow',
+                        'sent', 'preparing' => 'badge-dark',
+                        'ready' => 'badge-red',
                         'served' => 'badge-green',
                         'cancelled' => 'badge-red',
                         default => 'badge-gray',
@@ -16,10 +16,10 @@
                     <div>
                         <p class="font-medium">{{ $item->quantity }}× {{ $item->menuItem->name }}</p>
                         @if ($item->modifiers->count())
-                            <p class="text-xs text-gray-500">{{ $item->modifiers->pluck('name')->join(', ') }}</p>
+                            <p class="text-xs text-zinc-500">{{ $item->modifiers->pluck('name')->join(', ') }}</p>
                         @endif
                         @if ($item->notes)
-                            <p class="text-xs text-gray-400 italic">{{ $item->notes }}</p>
+                            <p class="text-xs text-zinc-400 italic">{{ $item->notes }}</p>
                         @endif
                     </div>
                     <span class="{{ $itemBadge }}">{{ ucfirst($item->status) }}</span>
@@ -27,7 +27,7 @@
             @endforeach
 
             @if ($order->items->isEmpty())
-                <p class="px-5 py-6 text-sm text-gray-400">No items yet — add some from the menu on the right.</p>
+                <p class="px-5 py-6 text-sm text-zinc-400">No items yet — add some from the menu on the right.</p>
             @endif
         </div>
 

@@ -6,7 +6,7 @@
                 <span class="badge-red">{{ $ingredient->stock_qty }} {{ $ingredient->unit }} left (threshold {{ $ingredient->low_stock_threshold }})</span>
             </div>
         @empty
-            <p class="px-5 py-6 text-sm text-gray-400">Nothing low on stock.</p>
+            <p class="px-5 py-6 text-sm text-zinc-400">Nothing low on stock.</p>
         @endforelse
     </div>
 </x-layouts.admin>

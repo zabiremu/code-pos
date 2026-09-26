@@ -23,7 +23,7 @@
 
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-zinc-600">
                     {!! __('Showing') !!}
                     @if ($paginator->firstItem())
                         <span class="font-medium">{{ $paginator->firstItem() }}</span>
@@ -42,11 +42,11 @@
                 <span class="inline-flex rounded-lg shadow-sm isolate gap-0.5">
                     {{-- Previous --}}
                     @if ($paginator->onFirstPage())
-                        <span class="rounded-l-lg px-3 py-2 text-sm text-gray-300 bg-white border border-gray-200 cursor-default" aria-disabled="true">
+                        <span class="rounded-l-lg px-3 py-2 text-sm text-zinc-300 bg-white border border-zinc-200 cursor-default" aria-disabled="true">
                             <span aria-hidden="true">&lsaquo;</span>
                         </span>
                     @else
-                        <a href="{{ $paginator->previousPageUrl() }}" class="rounded-l-lg px-3 py-2 text-sm text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 hover:text-primary-600 transition-colors" rel="prev">
+                        <a href="{{ $paginator->previousPageUrl() }}" class="rounded-l-lg px-3 py-2 text-sm text-zinc-500 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-primary-600 transition-colors" rel="prev">
                             <span aria-hidden="true">&lsaquo;</span>
                         </a>
                     @endif
@@ -54,7 +54,7 @@
                     {{-- Page Numbers --}}
                     @foreach ($elements as $element)
                         @if (is_string($element))
-                            <span class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-200">{{ $element }}</span>
+                            <span class="px-3 py-2 text-sm text-zinc-400 bg-white border border-zinc-200">{{ $element }}</span>
                         @endif
 
                         @if (is_array($element))
@@ -62,7 +62,7 @@
                                 @if ($page == $paginator->currentPage())
                                     <span aria-current="page" class="px-3 py-2 text-sm font-semibold text-white bg-primary-600 border border-primary-600">{{ $page }}</span>
                                 @else
-                                    <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 hover:text-primary-600 transition-colors">{{ $page }}</a>
+                                    <a href="{{ $url }}" class="px-3 py-2 text-sm text-zinc-500 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-primary-600 transition-colors">{{ $page }}</a>
                                 @endif
                             @endforeach
                         @endif
@@ -70,11 +70,11 @@
 
                     {{-- Next --}}
                     @if ($paginator->hasMorePages())
-                        <a href="{{ $paginator->nextPageUrl() }}" class="rounded-r-lg px-3 py-2 text-sm text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 hover:text-primary-600 transition-colors" rel="next">
+                        <a href="{{ $paginator->nextPageUrl() }}" class="rounded-r-lg px-3 py-2 text-sm text-zinc-500 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-primary-600 transition-colors" rel="next">
                             <span aria-hidden="true">&rsaquo;</span>
                         </a>
                     @else
-                        <span class="rounded-r-lg px-3 py-2 text-sm text-gray-300 bg-white border border-gray-200 cursor-default" aria-disabled="true">
+                        <span class="rounded-r-lg px-3 py-2 text-sm text-zinc-300 bg-white border border-zinc-200 cursor-default" aria-disabled="true">
                             <span aria-hidden="true">&rsaquo;</span>
                         </span>
                     @endif

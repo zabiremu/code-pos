@@ -16,8 +16,8 @@
         @foreach ($staff as $user)
             <div class="flex items-center justify-between px-5 py-3">
                 <div>
-                    <p class="font-medium">{{ $user->name }} <span class="text-xs text-gray-400">{{ $user->email }}</span></p>
-                    <p class="text-xs text-gray-500">{{ $user->roles->pluck('name')->join(', ') }}</p>
+                    <p class="font-medium">{{ $user->name }} <span class="text-xs text-zinc-400">{{ $user->email }}</span></p>
+                    <p class="text-xs text-zinc-500">{{ $user->roles->pluck('name')->join(', ') }}</p>
                 </div>
                 <form method="POST" action="{{ route('admin.staff.destroy', $user) }}" onsubmit="return confirm('Remove this staff member?')">
                     @csrf @method('DELETE')
