@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\PaymentController;
@@ -71,6 +72,14 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
+
+            // Holds the SMTP password, so admins only - not managers.
+            Route::middleware('role:admin')->group(function () {
+                Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+                Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+                Route::post('/settings/test-email', [SettingsController::class, 'sendTestEmail'])
+                    ->middleware('throttle:5,1')->name('settings.test-email');
+            });
         });
 
     Route::middleware(['role:admin|manager|cashier'])

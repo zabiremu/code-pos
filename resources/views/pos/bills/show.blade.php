@@ -2,6 +2,19 @@
     <div class="max-w-md mx-auto card p-6 font-mono text-sm">
         <div class="text-center mb-4">
             <p class="font-semibold text-base">{{ config('app.name') }}</p>
+            @php
+                $shopAddress = \App\Models\Setting::get('shop_address');
+                $shopPhone = \App\Models\Setting::get('shop_phone');
+                $shopEmail = \App\Models\Setting::get('shop_email');
+                $receiptFooter = \App\Models\Setting::get('receipt_footer');
+                $currency = \App\Models\Branch::first()?->currency;
+            @endphp
+            @if ($shopAddress)
+                <p class="text-xs text-zinc-500" style="white-space:pre-line">{{ $shopAddress }}</p>
+            @endif
+            @if ($shopPhone || $shopEmail)
+                <p class="text-xs text-zinc-500">{{ collect([$shopPhone, $shopEmail])->filter()->implode(' | ') }}</p>
+            @endif
             <p class="text-xs text-zinc-500">Sale #{{ $bill->sale_id }}</p>
             <p class="text-xs text-zinc-500">{{ $bill->created_at->format('Y-m-d H:i') }}</p>
         </div>
@@ -29,7 +42,7 @@
             </div>
         @endif
         <div class="flex justify-between font-semibold text-base border-t mt-2 pt-2">
-            <span>Total</span><span>{{ number_format($bill->grand_total, 2) }}</span>
+            <span>Total{{ $currency ? ' ('.$currency.')' : '' }}</span><span>{{ number_format($bill->grand_total, 2) }}</span>
         </div>
         <div class="flex justify-between text-zinc-500">
             <span>Paid</span><span>{{ number_format($bill->amountPaid(), 2) }}</span>
@@ -53,6 +66,11 @@
             </form>
         @else
             <p class="mt-5 text-center text-green-700 font-sans">Paid in full.</p>
+        @endif
+
+        @if ($receiptFooter)
+            <div class="border-t border-dashed my-3"></div>
+            <p class="text-center text-xs text-zinc-500" style="white-space:pre-line">{{ $receiptFooter }}</p>
         @endif
     </div>
 </x-layouts.admin>

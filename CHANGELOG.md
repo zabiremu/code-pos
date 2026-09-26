@@ -2,6 +2,12 @@
 
 ## 2.0.1
 
+- **Settings** (Admin > Settings, admins only): shop name, phone, email,
+  address, currency, default tax rate, timezone, receipt footer, and SMTP
+  email details with a "send test email" button. Saved values override
+  `.env` at runtime; the SMTP password is stored encrypted. Receipts now show
+  the shop address, contact details, currency and footer. Run
+  `php artisan migrate` after updating (adds the `settings` table).
 - **Forgot password**: staff can reset their password by email
   (`/forgot-password` → emailed link → `/reset-password`). Links expire after
   60 minutes; deactivated accounts can't reset; the request form never reveals
