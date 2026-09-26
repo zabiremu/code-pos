@@ -10,9 +10,8 @@
 }
 
 /*
- * Shared UI components - white-dominant theme with red used sparingly as
- * an accent (logo, primary CTA, active nav state), not as a wall-to-wall
- * background color. Statuses run on a deliberately small palette: zinc
+ * Shared UI components - bone-white content area with vampire-blood
+ * (primary-600) for the sidebar, primary CTAs and brand moments. Statuses run on a deliberately small palette: zinc
  * (neutral/pending), solid charcoal (actively in progress), green
  * (terminal success only) and red (urgent action needed or negative) -
  * four meanings, four colors, instead of a gray/blue/amber/green mix
@@ -94,12 +93,37 @@
         @apply rounded-lg bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 px-4 py-2.5 text-sm;
     }
 
-    /* Sidebar nav - light theme: a white sidebar with a soft red tint for
-       the active item (plus a left accent bar), not a solid red panel. */
+    /* Sidebar - the same vampire-blood panel as the sign-in page, so the
+       app and its front door read as one product. */
+    .sidebar-surface {
+        background:
+            radial-gradient(120% 50% at 0% 0%, rgba(163, 18, 31, .55) 0%, transparent 60%),
+            linear-gradient(175deg, #6B0A14 0%, #2A0307 100%);
+    }
     .nav-link {
-        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 border-l-2 border-transparent hover:bg-zinc-50 hover:text-zinc-900 transition-colors;
+        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-bone/70 border-l-2 border-transparent hover:bg-white/5 hover:text-bone transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brass;
     }
     .nav-link-active {
-        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold bg-primary-50 text-primary-700 border-l-2 border-primary-600;
+        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold bg-white/10 text-white border-l-2 border-brass focus:outline-none focus-visible:ring-2 focus-visible:ring-brass;
     }
+    .nav-link svg, .nav-link-active svg {
+        @apply w-[18px] h-[18px] shrink-0 opacity-80;
+    }
+}
+
+/* Dashboard revenue line: drawn once on load (pathLength="1" on the path). */
+.pulse-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: pulse-draw 1.8s cubic-bezier(.65, 0, .35, 1) .2s forwards;
+}
+.pulse-now {
+    opacity: 0;
+    animation: pulse-appear .3s ease 2s forwards;
+}
+@keyframes pulse-draw { to { stroke-dashoffset: 0; } }
+@keyframes pulse-appear { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .pulse-draw { animation: none; stroke-dashoffset: 0; }
+    .pulse-now { animation: none; opacity: 1; }
 }

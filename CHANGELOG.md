@@ -2,6 +2,11 @@
 
 ## 2.0.1
 
+- **Dashboard & sidebar redesign**: vampire-blood theme across the app
+  (Tailwind `primary` palette, Gloock + Instrument Sans). Sidebar is now the
+  blood panel from the sign-in page with icons; the dashboard shows today's
+  revenue as an hourly line with a vs-yesterday comparison, recent sales and
+  a running-low list. Assets rebuilt in `public/build`.
 - **Settings** (Admin > Settings, admins only): shop name, phone, email,
   address, currency, default tax rate, timezone, receipt footer, and SMTP
   email details with a "send test email" button. Saved values override
