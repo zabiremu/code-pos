@@ -2,6 +2,10 @@
 
 ## 2.0.1
 
+- **Suppliers** (Catalog > Suppliers, admin + manager): add, edit, search,
+  filter by active/inactive and delete suppliers (contact, company, phone,
+  email, VAT/BIN/TIN, address, notes). Run `php artisan migrate`.
+- **Inputs**: form fields now get a visible border and padding app-wide.
 - **Dashboard & sidebar redesign**: vampire-blood theme across the app
   (Tailwind `primary` palette, Gloock + Instrument Sans). Sidebar is now the
   blood panel from the sign-in page with icons; the dashboard shows today's

@@ -55,7 +55,9 @@
         @apply block text-xs font-medium text-zinc-500 mb-1;
     }
     .input {
-        @apply block w-full rounded-lg border-zinc-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500;
+        /* No @tailwindcss/forms plugin, so border and padding are set here -
+           Tailwind's preflight otherwise leaves inputs borderless. */
+        @apply block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
     }
 
     /* Badges (status pills) - a soft fill plus a slightly darker inset

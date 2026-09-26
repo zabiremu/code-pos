@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\PaymentController;
 use App\Http\Controllers\POS\SaleController;
@@ -61,6 +62,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/products', [ProductController::class, 'store'])->name('products.store');
             Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
             Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+            Route::resource('suppliers', SupplierController::class)->except('show');
 
             Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
             Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');

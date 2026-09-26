@@ -49,6 +49,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5Z" stroke-linejoin="round"/><path d="M3 8v8l9 5 9-5V8M12 13v8" stroke-linejoin="round"/></svg>
                     Products
                 </a>
+                <a href="{{ route('admin.suppliers.index') }}" class="{{ $link('admin.suppliers.*') }}" {{ $current('admin.suppliers.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M2 6h11v10H2zM13 9h4.5l3.5 3.5V16h-8" stroke-linejoin="round"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+                    Suppliers
+                </a>
             </div>
         </div>
 
