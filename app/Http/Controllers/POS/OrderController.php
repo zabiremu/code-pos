@@ -17,14 +17,37 @@ use Illuminate\Http\Request;
  */
 class OrderController extends Controller
 {
-    public function index(): View
+    /**
+     * Status-tab + search filtering follows the same shape as a WordPress
+     * list-table screen (All | Open | Sent | Served tabs with counts, a
+     * search box, ?status=&q= in the URL) rather than a single flat list.
+     */
+    public function index(Request $request): View
     {
-        $orders = Order::with(['table', 'waiter', 'items.menuItem'])
-            ->whereIn('status', ['open', 'sent', 'served'])
-            ->latest()
-            ->paginate(20);
+        $activeStatuses = ['open', 'sent', 'served'];
+        $status = $request->query('status', 'all');
+        $search = trim((string) $request->query('q', ''));
 
-        return view('pos.orders.index', compact('orders'));
+        $orders = Order::with(['table', 'waiter', 'items.menuItem'])
+            ->whereIn('status', $activeStatuses)
+            ->when(in_array($status, $activeStatuses, true), fn ($q) => $q->where('status', $status))
+            ->when($search !== '', fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhere('type', 'like', "%{$search}%")
+                    ->orWhereHas('table', fn ($t) => $t->where('label', 'like', "%{$search}%"));
+            }))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $counts = [
+            'all' => Order::whereIn('status', $activeStatuses)->count(),
+            'open' => Order::where('status', 'open')->count(),
+            'sent' => Order::where('status', 'sent')->count(),
+            'served' => Order::where('status', 'served')->count(),
+        ];
+
+        return view('pos.orders.index', compact('orders', 'counts', 'status', 'search'));
     }
 
     public function create(): View
