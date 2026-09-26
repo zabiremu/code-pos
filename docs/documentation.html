@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant POS — Documentation</title>
+<style>
+  :root{
+    --primary:#b91c1c; --primary-dark:#7f1d1d; --ink:#1f2937; --muted:#6b7280;
+    --bg:#ffffff; --panel:#f9fafb; --border:#e5e7eb; --code-bg:#18181b; --code-ink:#e4e4e7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.6;
+  }
+  .layout{display:flex; max-width:1200px; margin:0 auto;}
+  nav{
+    width:260px; flex-shrink:0; padding:32px 20px; border-right:1px solid var(--border);
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  nav h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:20px 0 8px;}
+  nav h2:first-child{margin-top:0;}
+  nav a{display:block; color:var(--ink); text-decoration:none; font-size:14px; padding:5px 0;}
+  nav a:hover{color:var(--primary);}
+  main{flex:1; padding:40px 48px; min-width:0;}
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .brand .dot{width:12px; height:12px; border-radius:3px; background:var(--primary);}
+  .brand span{font-weight:700; font-size:15px;}
+  header.hero{border-bottom:2px solid var(--primary); padding-bottom:24px; margin-bottom:36px;}
+  header.hero h1{font-size:32px; margin:8px 0 6px;}
+  header.hero p{color:var(--muted); margin:0; font-size:15px;}
+  section{margin-bottom:48px; scroll-margin-top:20px;}
+  h2{font-size:22px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-top:0;}
+  h3{font-size:17px; margin-top:28px;}
+  p{color:#374151;}
+  code{background:var(--panel); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  pre{background:var(--code-bg); color:var(--code-ink); padding:16px 18px; border-radius:8px; overflow-x:auto; font-size:13px; line-height:1.5;}
+  pre code{background:none; border:none; padding:0; color:inherit;}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--border);}
+  th{background:var(--panel); font-weight:600;}
+  .callout{border-left:4px solid var(--primary); background:var(--panel); padding:14px 18px; border-radius:0 6px 6px 0; margin:18px 0;}
+  .callout.warn{border-left-color:#b45309; background:#fffbeb;}
+  .callout strong{color:var(--primary-dark);}
+  .callout.warn strong{color:#92400e;}
+  .roles-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:16px 0;}
+  .role-card{border:1px solid var(--border); border-radius:8px; padding:14px 16px;}
+  .role-card h4{margin:0 0 6px; font-size:14px;}
+  .role-card p{margin:0; font-size:13px; color:var(--muted);}
+  .placeholder-shot{border:2px dashed var(--border); border-radius:8px; padding:40px; text-align:center; color:var(--muted); font-size:13px; background:var(--panel); margin:16px 0;}
+  footer{color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px; margin-top:40px;}
+  ul{color:#374151;}
+  @media (max-width:860px){ .layout{flex-direction:column;} nav{position:static; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);} main{padding:28px 20px;} }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <div class="brand"><div class="dot"></div><span>Restaurant POS</span></div>
+  <h2>Getting Started</h2>
+  <a href="#overview">Overview</a>
+  <a href="#requirements">Server Requirements</a>
+  <a href="#installation">Installation</a>
+  <a href="#configuration">Configuration</a>
+  <h2>Using the App</h2>
+  <a href="#roles">Roles &amp; Permissions</a>
+  <a href="#features">Feature Walkthrough</a>
+  <a href="#qr-ordering">QR Self-Ordering</a>
+  <h2>Reference</h2>
+  <a href="#updating">Updating</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+  <a href="#security">Security Notes</a>
+  <a href="#support">Support</a>
+</nav>
+<main>
+  <header class="hero">
+    <div class="brand"><div class="dot"></div><span>RESTAURANT POS</span></div>
+    <h1>Documentation</h1>
+    <p>A Laravel-based point-of-sale system for restaurants and cafes — table management, order taking, kitchen display, billing, reports, and QR-code customer self-ordering.</p>
+  </header>
+
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>Restaurant POS is built for a single branch running dine-in, takeaway, and delivery service. Staff sign in with an account an admin creates for them (there is no public sign-up), and the app is organized around five roles: Admin, Manager, Cashier, Waiter, and Kitchen.</p>
+    <p>Core workflow: a waiter opens an order against a table, adds items with modifiers, sends it to the kitchen; kitchen staff track it on the Kitchen Display board; a cashier bills it (with tax, service charge, and optional discount) and records payment. Customers can also scan a printed QR code at their table to browse the live menu and submit their own order, with no login required.</p>
+  </section>
+
+  <section id="requirements">
+    <h2>Server Requirements</h2>
+    <table>
+      <tr><th>Requirement</th><th>Minimum</th></tr>
+      <tr><td>PHP</td><td>8.2 or newer</td></tr>
+      <tr><td>Database</td><td>MySQL 8.0+ (or MariaDB equivalent)</td></tr>
+      <tr><td>PHP extensions</td><td><code>bcmath</code>, <code>ctype</code>, <code>fileinfo</code>, <code>json</code>, <code>mbstring</code>, <code>openssl</code>, <code>pdo</code>, <code>pdo_mysql</code>, <code>tokenizer</code>, <code>xml</code></td></tr>
+      <tr><td>Writable paths</td><td><code>storage/</code> and <code>bootstrap/cache/</code></td></tr>
+      <tr><td>Web server</td><td>Apache (with <code>.htaccess</code>/mod_rewrite) or Nginx</td></tr>
+    </table>
+    <p>The built-in installer's Requirements step checks all of the above automatically before letting you continue.</p>
+  </section>
+
+  <section id="installation">
+    <h2>Installation</h2>
+    <h3>Option A — Web installer (recommended for shared hosting, no command line)</h3>
+    <ol>
+      <li>Upload the contents of the package to your hosting account.</li>
+      <li>Point your domain's document root at the <code>public/</code> folder. If your host doesn't let you change the document root, leave the project at the account root — the bundled root-level <code>.htaccess</code> routes requests into <code>public/</code> automatically.</li>
+      <li>Visit your domain in a browser. You'll land on the installer's welcome screen.</li>
+      <li><strong>Requirements</strong> — confirms PHP version, required extensions, and folder permissions.</li>
+      <li><strong>Purchase code</strong> — enter your CodeCanyon purchase code and an Envato Personal Token (Account → Settings → API Keys on your Envato profile) so we can verify your license before installing.</li>
+      <li><strong>Database</strong> — enter your MySQL host, port, database name, username, and password. The installer tests the connection, writes your <code>.env</code>, then runs migrations and seeds a demo admin account and sample menu automatically.</li>
+      <li><strong>Finish</strong> — you're shown the demo admin login. <strong>Change that password immediately</strong> from the Profile page after your first login. The installer locks itself shut after this step (see Troubleshooting if you need to re-run it).</li>
+    </ol>
+    <h3>Option B — Command line (for a VPS or local development)</h3>
+    <pre><code>composer install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+# edit .env with your DB_* values, then:
+php artisan migrate --seed
+php artisan storage:link
+</code></pre>
+    <div class="callout warn">
+      <strong>If your package didn't include a pre-built <code>vendor/</code> folder:</strong> the web installer (and the app itself) cannot start until dependencies are installed once, because that's what Laravel boots from. Most CodeCanyon buyers are on shared hosting without SSH/Composer access, so the distributed package should ship with <code>vendor/</code> already built (<code>composer install --no-dev --optimize-autoloader</code>, run once before packaging). If yours doesn't have it yet and you have no command-line access, ask your host to run the command above for you, or use a local machine with PHP/Composer to build <code>vendor/</code> and upload it alongside the rest of the files.
+    </div>
+  </section>
+
+  <section id="configuration">
+    <h2>Configuration</h2>
+    <p>Everything lives in <code>.env</code>. The most relevant keys:</p>
+    <table>
+      <tr><th>Key</th><th>Purpose</th></tr>
+      <tr><td><code>APP_ENV</code> / <code>APP_DEBUG</code></td><td>Keep <code>production</code> / <code>false</code> on a live site — debug mode shows visitors stack traces on error pages.</td></tr>
+      <tr><td><code>DB_*</code></td><td>Your MySQL connection. Set automatically if you used the web installer.</td></tr>
+      <tr><td><code>ENVATO_ITEM_ID</code>, <code>ENVATO_PERSONAL_TOKEN</code></td><td>Used once during the installer's purchase-code step.</td></tr>
+      <tr><td><code>PUSHER_*</code> / <code>VITE_PUSHER_*</code></td><td>Optional. Configure a Pusher (or self-hosted Soketi) account for instant, real-time Kitchen Display updates. Leave blank and the KDS board still works — it polls for new tickets every 5 seconds instead.</td></tr>
+      <tr><td><code>MAIL_MAILER</code></td><td>Defaults to <code>log</code> (no outgoing email is required for the app to function).</td></tr>
+    </table>
+  </section>
+
+  <section id="roles">
+    <h2>Roles &amp; Permissions</h2>
+    <p>Staff accounts are created by an admin or manager from <strong>Admin → Staff</strong> — there is no public registration page.</p>
+    <div class="roles-grid">
+      <div class="role-card"><h4>Admin</h4><p>Full access: menu, floors/tables, staff (including managing other admins), reports, and every POS/KDS screen.</p></div>
+      <div class="role-card"><h4>Manager</h4><p>Same day-to-day access as Admin, except cannot create, edit, or remove another Admin account, or edit their own role.</p></div>
+      <div class="role-card"><h4>Cashier</h4><p>Order taking and billing/payment screens.</p></div>
+      <div class="role-card"><h4>Waiter</h4><p>Order taking screens (add items, send to kitchen, view/close orders).</p></div>
+      <div class="role-card"><h4>Kitchen</h4><p>Kitchen Display board only — sees tickets, bumps their status.</p></div>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>Feature Walkthrough</h2>
+    <h3>Menu &amp; Floor Management</h3>
+    <p>Build nested categories, menu items with optional per-item tax-rate overrides, variants (e.g. sizes), modifier groups (e.g. toppings, required or optional), and an ingredient list per item for automatic stock deduction.</p>
+    <div class="placeholder-shot">Screenshot: Admin → Menu Items screen</div>
+    <h3>Order Taking</h3>
+    <p>Open an order against a table (or mark it takeaway/delivery), add items with quantity/notes/modifiers, and send the whole order to the kitchen in one action. Each line item then moves through pending → sent → preparing → ready → served.</p>
+    <div class="placeholder-shot">Screenshot: Order screen with items and status badges</div>
+    <h3>Kitchen Display System (KDS)</h3>
+    <p>A station-filterable ticket board. Kitchen staff bump an item's status as they work on it; the POS side reflects the change automatically (live if Pusher/Soketi is configured, or within 5 seconds via polling otherwise).</p>
+    <div class="placeholder-shot">Screenshot: KDS ticket board</div>
+    <h3>Billing</h3>
+    <p>Generate a bill for all or a subset of an order's items (split billing), apply a percent or fixed discount, add a service-charge percentage, and record one or more payments (cash, card, mobile wallet, other) — the bill's status updates to paid/partially paid automatically as payments come in.</p>
+    <div class="placeholder-shot">Screenshot: Bill / payment screen</div>
+    <h3>Reports</h3>
+    <p>Daily sales with top-selling items, low-stock ingredient alerts, and a dashboard summarizing today's orders and revenue at a glance.</p>
+  </section>
+
+  <section id="qr-ordering">
+    <h2>QR Self-Ordering</h2>
+    <p>Every table gets a unique, non-guessable link. Print it from <strong>Admin → Tables → QR</strong> and place it on the table. A customer scans it, browses the live menu with no login, and submits a cart — it lands as pending items on that table's order exactly as if a waiter had entered them, so staff still review and send everything to the kitchen from the normal POS screen. The public menu route is rate-limited against abuse.</p>
+    <div class="placeholder-shot">Screenshot: customer-facing QR ordering menu (on a phone)</div>
+  </section>
+
+  <section id="updating">
+    <h2>Updating</h2>
+    <p>Back up your database and <code>.env</code> before updating. Replace the application files with the new version (keeping your <code>.env</code> and, if you customized them, your <code>storage/</code> uploads), then run:</p>
+    <pre><code>composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+</code></pre>
+    <p>See <code>CHANGELOG.md</code> in the package for what changed in each version.</p>
+  </section>
+
+  <section id="troubleshooting">
+    <h2>Troubleshooting</h2>
+    <h3>"I need to re-run the installer"</h3>
+    <p>The installer locks itself after a successful run by creating <code>storage/installed.lock</code>. Delete that file to unlock it — only do this on a fresh install, since re-running migrate/seed against a live database is not intended.</p>
+    <h3>"My URLs show /public/ in them"</h3>
+    <p>Point your hosting account's document root at the <code>public/</code> folder. If your host doesn't allow that, leave the project where it is — the included root <code>.htaccess</code> already redirects transparently, so no further action is needed.</p>
+    <h3>"Kitchen Display doesn't update instantly"</h3>
+    <p>Without Pusher/Soketi configured (<code>PUSHER_*</code> in <code>.env</code>), the board falls back to polling every 5 seconds — this is expected behavior on hosting with no persistent WebSocket support, not a bug.</p>
+    <h3>"A blank page or 500 error on a fresh upload"</h3>
+    <p>This almost always means <code>vendor/</code> is missing or <code>storage/</code> / <code>bootstrap/cache</code> aren't writable. See Installation above.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security Notes</h2>
+    <ul>
+      <li>Keep <code>APP_DEBUG=false</code> on any live site — this is the default in <code>.env.example</code>.</li>
+      <li>Change the seeded demo admin password (<code>admin@example.com</code> / <code>password</code>) immediately after installing.</li>
+      <li>Login is rate-limited (5 attempts/minute per email+IP) against brute-force attempts.</li>
+      <li>Only an Admin account can create, edit, or remove another Admin account — a Manager cannot escalate their own or anyone else's access.</li>
+    </ul>
+  </section>
+
+  <section id="support">
+    <h2>Support</h2>
+    <p>Questions or issues with this item are handled through the CodeCanyon item page's comment section, or the support channel named on the listing page (add your support email/URL here before publishing). Please include your purchase code when reaching out so we can confirm your license.</p>
+  </section>
+
+  <footer>Restaurant POS — Copyright © Zabir Raihan (Envato author: Zabir_Raihan). Licensed under the Envato Market license you purchased it under — see <code>LICENSE.txt</code>.</footer>
+</main>
+</div>
+</body>
+</html>

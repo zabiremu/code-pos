@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -36,6 +37,16 @@ class StaffController extends Controller
             'role' => ['required', 'in:'.implode(',', Role::values())],
             'password' => ['required', 'string', 'min:8'],
         ]);
+
+        // Only an admin can create another admin - a manager granting the
+        // top role to someone (including themselves via a crafted request)
+        // would be a privilege-escalation hole, since this route only
+        // requires role:admin|manager.
+        abort_if(
+            $data['role'] === Role::Admin->value && ! Auth::user()->hasRole(Role::Admin->value),
+            403,
+            'Only an admin can grant the admin role.'
+        );
 
         $user = User::create([
             'name' => $data['name'],
@@ -78,12 +89,35 @@ class StaffController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        // Privilege-escalation / lockout guards - this route only requires
+        // role:admin|manager, so without these a manager could promote
+        // themselves (or anyone) to admin, demote/deactivate an existing
+        // admin, or deactivate their own account by mistake.
+        $actingUser = Auth::user();
+        $isAdmin = $actingUser->hasRole(Role::Admin->value);
+
+        abort_if(
+            ! $isAdmin && ($data['role'] === Role::Admin->value || $staffMember->hasRole(Role::Admin->value)),
+            403,
+            'Only an admin can manage admin accounts.'
+        );
+
+        abort_if(
+            $staffMember->is($actingUser) && ($data['role'] !== Role::Admin->value || ! ($data['is_active'] ?? false)),
+            403,
+            'You cannot change your own role or deactivate your own account.'
+        );
+
         $staffMember->update([
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'branch_id' => $data['branch_id'] ?? null,
-            'is_active' => $data['is_active'] ?? true,
+            // Matches admin.staff.show's hidden is_active=0 input ahead of the
+            // checkbox (standard unchecked-checkbox trick) - default to
+            // inactive, not active, if the field is missing entirely (e.g. a
+            // raw API call that skips the hidden field the Blade form sends).
+            'is_active' => $data['is_active'] ?? false,
         ]);
 
         $staffMember->syncRoles([$data['role']]);
@@ -93,6 +127,16 @@ class StaffController extends Controller
 
     public function destroy(User $staffMember): RedirectResponse
     {
+        $actingUser = Auth::user();
+
+        abort_if($staffMember->is($actingUser), 403, 'You cannot delete your own account.');
+
+        abort_if(
+            $staffMember->hasRole(Role::Admin->value) && ! $actingUser->hasRole(Role::Admin->value),
+            403,
+            'Only an admin can remove an admin account.'
+        );
+
         $staffMember->delete();
 
         return back()->with('status', 'Staff member removed.');

@@ -113,4 +113,121 @@ class StaffManagementTest extends TestCase
             'phone' => '01799999999',
         ]);
     }
+
+    /*
+     * The tests below guard against a privilege-escalation hole: this whole
+     * controller is only gated to role:admin|manager, so without these
+     * checks a manager could grant themselves/anyone the admin role,
+     * demote or deactivate an existing admin, or delete an admin outright.
+     */
+
+    public function test_manager_cannot_create_an_admin_account(): void
+    {
+        $this->actingAs($this->staff('manager'))
+            ->post(route('admin.staff.store'), [
+                'name' => 'New Admin',
+                'email' => 'new-admin@example.com',
+                'role' => 'admin',
+                'password' => 'password123',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('users', ['email' => 'new-admin@example.com']);
+    }
+
+    public function test_admin_can_create_an_admin_account(): void
+    {
+        $this->actingAs($this->staff('admin'))
+            ->post(route('admin.staff.store'), [
+                'name' => 'New Admin',
+                'email' => 'new-admin@example.com',
+                'role' => 'admin',
+                'password' => 'password123',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('users', ['email' => 'new-admin@example.com']);
+    }
+
+    public function test_manager_cannot_edit_an_existing_admin(): void
+    {
+        $admin = $this->staff('admin');
+
+        $this->actingAs($this->staff('manager'))
+            ->put(route('admin.staff.update', $admin), [
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'role' => 'manager',
+                'is_active' => '1',
+            ])
+            ->assertForbidden();
+
+        $this->assertTrue($admin->fresh()->hasRole('admin'));
+    }
+
+    public function test_manager_cannot_promote_someone_to_admin(): void
+    {
+        $waiter = $this->staff('waiter');
+
+        $this->actingAs($this->staff('manager'))
+            ->put(route('admin.staff.update', $waiter), [
+                'name' => $waiter->name,
+                'email' => $waiter->email,
+                'role' => 'admin',
+                'is_active' => '1',
+            ])
+            ->assertForbidden();
+
+        $this->assertFalse($waiter->fresh()->hasRole('admin'));
+    }
+
+    public function test_user_cannot_change_their_own_role_or_deactivate_themselves(): void
+    {
+        $manager = $this->staff('manager');
+
+        $this->actingAs($manager)
+            ->put(route('admin.staff.update', $manager), [
+                'name' => $manager->name,
+                'email' => $manager->email,
+                'role' => 'manager',
+                'is_active' => '0',
+            ])
+            ->assertForbidden();
+
+        $this->assertTrue($manager->fresh()->is_active);
+    }
+
+    public function test_manager_cannot_delete_an_admin(): void
+    {
+        $admin = $this->staff('admin');
+
+        $this->actingAs($this->staff('manager'))
+            ->delete(route('admin.staff.destroy', $admin))
+            ->assertForbidden();
+
+        $this->assertModelExists($admin);
+    }
+
+    public function test_user_cannot_delete_their_own_account(): void
+    {
+        $admin = $this->staff('admin');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.staff.destroy', $admin))
+            ->assertForbidden();
+
+        $this->assertModelExists($admin);
+    }
+
+    public function test_admin_can_delete_another_admin(): void
+    {
+        $actingAdmin = $this->staff('admin');
+        $otherAdmin = $this->staff('admin');
+
+        $this->actingAs($actingAdmin)
+            ->delete(route('admin.staff.destroy', $otherAdmin))
+            ->assertRedirect();
+
+        $this->assertModelMissing($otherAdmin);
+    }
 }
