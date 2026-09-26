@@ -68,8 +68,8 @@
     .badge-gray {
         @apply badge bg-zinc-100 text-zinc-600 ring-zinc-500/10;
     }
-    /* Actively in progress (order sent to kitchen, table occupied) - a
-       solid fill reads as "happening now", distinct from the flat/light
+    /* Actively in progress (a sale that's been billed but not yet closed) -
+       a solid fill reads as "happening now", distinct from the flat/light
        gray used for states that are merely waiting to start. */
     .badge-dark {
         @apply badge bg-zinc-800 text-white ring-zinc-800;

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\POS;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bill;
 use App\Models\Discount;
-use App\Models\Order;
+use App\Models\Sale;
 use App\Services\BillingService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,12 +17,12 @@ class BillController extends Controller
     {
     }
 
-    /** Generates a bill for an order (optionally a subset of items, for split billing). */
-    public function store(Request $request, Order $order): RedirectResponse
+    /** Generates a bill for a sale (optionally a subset of items, for split billing). */
+    public function store(Request $request, Sale $sale): RedirectResponse
     {
         $data = $request->validate([
             'item_ids' => ['nullable', 'array'],
-            'item_ids.*' => ['exists:order_items,id'],
+            'item_ids.*' => ['exists:sale_items,id'],
             'discount_code' => ['nullable', 'string'],
             'service_charge_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
@@ -31,20 +32,20 @@ class BillController extends Controller
             : null;
 
         $bill = $this->billing->createBill(
-            $order,
+            $sale,
             isset($data['item_ids']) ? collect($data['item_ids']) : null,
             $discount,
             $data['service_charge_rate'] ?? 0,
         );
 
-        $order->update(['status' => 'billed']);
+        $sale->update(['status' => 'billed']);
 
         return redirect()->route('pos.bills.show', $bill);
     }
 
-    public function show(\App\Models\Bill $bill): View
+    public function show(Bill $bill): View
     {
-        $bill->load(['order.table', 'payments', 'discount']);
+        $bill->load(['sale.items.product', 'payments', 'discount']);
 
         return view('pos.bills.show', compact('bill'));
     }

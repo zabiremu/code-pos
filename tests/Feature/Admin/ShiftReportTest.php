@@ -12,7 +12,7 @@ class ShiftReportTest extends TestCase
 
     public function test_admin_can_view_the_attendance_report(): void
     {
-        $employee = $this->staff('waiter', ['name' => 'Rana']);
+        $employee = $this->staff('cashier', ['name' => 'Rana']);
         $employee->shifts()->create(['clock_in' => now()->subHours(2), 'clock_out' => now(), 'opening_till' => 50, 'closing_till' => 200]);
 
         $this->actingAs($this->staff('admin'))
@@ -28,9 +28,9 @@ class ShiftReportTest extends TestCase
             ->assertOk();
     }
 
-    public function test_waiter_is_forbidden_from_the_attendance_report(): void
+    public function test_cashier_is_forbidden_from_the_attendance_report(): void
     {
-        $this->actingAs($this->staff('waiter'))
+        $this->actingAs($this->staff('cashier'))
             ->get(route('admin.shifts.index'))
             ->assertForbidden();
     }
@@ -40,7 +40,7 @@ class ShiftReportTest extends TestCase
         // assertViewHas rather than assertSee/assertDontSee: the filter
         // dropdown itself lists every employee's name, so a name being
         // present in the rendered HTML doesn't mean it's in the results.
-        $rana = $this->staff('waiter', ['name' => 'Rana']);
+        $rana = $this->staff('cashier', ['name' => 'Rana']);
         $rana->shifts()->create(['clock_in' => now(), 'opening_till' => 50]);
 
         $karim = $this->staff('cashier', ['name' => 'Karim']);
@@ -57,7 +57,7 @@ class ShiftReportTest extends TestCase
 
     public function test_the_report_can_be_filtered_to_only_currently_open_shifts(): void
     {
-        $rana = $this->staff('waiter', ['name' => 'Rana']);
+        $rana = $this->staff('cashier', ['name' => 'Rana']);
         $rana->shifts()->create(['clock_in' => now()->subHour(), 'clock_out' => now(), 'opening_till' => 50, 'closing_till' => 60]);
 
         $karim = $this->staff('cashier', ['name' => 'Karim']);

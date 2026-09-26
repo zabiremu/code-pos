@@ -12,7 +12,7 @@ class StaffManagementTest extends TestCase
 
     public function test_admin_can_view_an_employees_full_profile(): void
     {
-        $employee = $this->staff('waiter', ['name' => 'Rana']);
+        $employee = $this->staff('cashier', ['name' => 'Rana']);
 
         $this->actingAs($this->staff('admin'))
             ->get(route('admin.staff.show', $employee))
@@ -22,7 +22,7 @@ class StaffManagementTest extends TestCase
 
     public function test_a_non_manager_cannot_view_the_employee_profile_page(): void
     {
-        $employee = $this->staff('waiter');
+        $employee = $this->staff('cashier');
 
         $this->actingAs($this->staff('cashier'))
             ->get(route('admin.staff.show', $employee))
@@ -31,7 +31,7 @@ class StaffManagementTest extends TestCase
 
     public function test_admin_can_update_an_employees_full_profile(): void
     {
-        $employee = $this->staff('waiter', ['name' => 'Old Name']);
+        $employee = $this->staff('cashier', ['name' => 'Old Name']);
 
         $this->actingAs($this->staff('admin'))
             ->put(route('admin.staff.update', $employee), [
@@ -48,18 +48,18 @@ class StaffManagementTest extends TestCase
         $this->assertSame('New Name', $employee->name);
         $this->assertSame('01711111111', $employee->phone);
         $this->assertTrue($employee->hasRole('cashier'));
-        $this->assertFalse($employee->hasRole('waiter'));
+        $this->assertFalse($employee->hasRole('cashier'));
     }
 
     public function test_updating_an_employee_can_deactivate_their_account(): void
     {
-        $employee = $this->staff('waiter');
+        $employee = $this->staff('cashier');
 
         $this->actingAs($this->staff('admin'))
             ->put(route('admin.staff.update', $employee), [
                 'name' => $employee->name,
                 'email' => $employee->email,
-                'role' => 'waiter',
+                'role' => 'cashier',
                 // is_active deliberately omitted, like an unchecked checkbox -
                 // the form's hidden "0" fallback input is what makes this work.
             ]);
@@ -69,14 +69,14 @@ class StaffManagementTest extends TestCase
 
     public function test_employee_update_rejects_an_email_already_used_by_someone_else(): void
     {
-        $employee = $this->staff('waiter');
+        $employee = $this->staff('cashier');
         $other = $this->staff('cashier');
 
         $this->actingAs($this->staff('admin'))
             ->put(route('admin.staff.update', $employee), [
                 'name' => $employee->name,
                 'email' => $other->email,
-                'role' => 'waiter',
+                'role' => 'cashier',
                 'is_active' => '1',
             ])
             ->assertSessionHasErrors('email');
@@ -84,13 +84,13 @@ class StaffManagementTest extends TestCase
 
     public function test_employee_update_allows_keeping_their_own_email(): void
     {
-        $employee = $this->staff('waiter');
+        $employee = $this->staff('cashier');
 
         $this->actingAs($this->staff('admin'))
             ->put(route('admin.staff.update', $employee), [
                 'name' => $employee->name,
                 'email' => $employee->email,
-                'role' => 'waiter',
+                'role' => 'cashier',
                 'is_active' => '1',
             ])
             ->assertSessionHasNoErrors();
@@ -167,18 +167,18 @@ class StaffManagementTest extends TestCase
 
     public function test_manager_cannot_promote_someone_to_admin(): void
     {
-        $waiter = $this->staff('waiter');
+        $cashier = $this->staff('cashier');
 
         $this->actingAs($this->staff('manager'))
-            ->put(route('admin.staff.update', $waiter), [
-                'name' => $waiter->name,
-                'email' => $waiter->email,
+            ->put(route('admin.staff.update', $cashier), [
+                'name' => $cashier->name,
+                'email' => $cashier->email,
                 'role' => 'admin',
                 'is_active' => '1',
             ])
             ->assertForbidden();
 
-        $this->assertFalse($waiter->fresh()->hasRole('admin'));
+        $this->assertFalse($cashier->fresh()->hasRole('admin'));
     }
 
     public function test_user_cannot_change_their_own_role_or_deactivate_themselves(): void

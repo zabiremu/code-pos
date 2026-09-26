@@ -10,13 +10,13 @@ class StockMovement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['ingredient_id', 'user_id', 'type', 'qty', 'note'];
+    protected $fillable = ['product_id', 'user_id', 'type', 'qty', 'note'];
 
     protected $casts = ['qty' => 'decimal:3'];
 
-    public function ingredient(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Ingredient::class);
+        return $this->belongsTo(Product::class);
     }
 
     public function user(): BelongsTo

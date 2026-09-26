@@ -8,8 +8,6 @@ enum Role: string
     case Admin = 'admin';
     case Manager = 'manager';
     case Cashier = 'cashier';
-    case Waiter = 'waiter';
-    case Kitchen = 'kitchen';
 
     public function label(): string
     {
@@ -17,8 +15,6 @@ enum Role: string
             self::Admin => 'Admin',
             self::Manager => 'Manager',
             self::Cashier => 'Cashier',
-            self::Waiter => 'Waiter',
-            self::Kitchen => 'Kitchen',
         };
     }
 

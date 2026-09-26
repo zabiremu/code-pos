@@ -2,26 +2,45 @@
 
 namespace App\Services;
 
-use App\Models\OrderItem;
+use App\Models\SaleItem;
 
-/** Deducts recipe ingredients from stock when an order item is served. */
+/** Deducts a product's own stock the moment it's added to a sale. */
 class StockService
 {
-    public function deductForServedItem(OrderItem $orderItem): void
+    public function deductForSaleItem(SaleItem $saleItem): void
     {
-        $menuItem = $orderItem->menuItem()->with('ingredients')->first();
+        $product = $saleItem->product;
 
-        foreach ($menuItem->ingredients as $ingredient) {
-            $qtyUsed = $ingredient->pivot->qty * $orderItem->quantity;
-
-            $ingredient->decrement('stock_qty', $qtyUsed);
-
-            $ingredient->stockMovements()->create([
-                'user_id' => null,
-                'type' => 'sale',
-                'qty' => -$qtyUsed,
-                'note' => "Order item #{$orderItem->id}",
-            ]);
+        if (! $product->track_stock) {
+            return;
         }
+
+        $product->decrement('stock_quantity', $saleItem->quantity);
+
+        $product->stockMovements()->create([
+            'user_id' => null,
+            'type' => 'sale',
+            'qty' => -$saleItem->quantity,
+            'note' => "Sale item #{$saleItem->id}",
+        ]);
+    }
+
+    /** Restores stock when a line item is removed from an open sale before it's billed. */
+    public function restoreForRemovedSaleItem(SaleItem $saleItem): void
+    {
+        $product = $saleItem->product;
+
+        if (! $product->track_stock) {
+            return;
+        }
+
+        $product->increment('stock_quantity', $saleItem->quantity);
+
+        $product->stockMovements()->create([
+            'user_id' => null,
+            'type' => 'adjustment',
+            'qty' => $saleItem->quantity,
+            'note' => "Removed sale item #{$saleItem->id}",
+        ]);
     }
 }

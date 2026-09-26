@@ -2,20 +2,15 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\FloorController;
-use App\Http\Controllers\Admin\MenuItemController;
-use App\Http\Controllers\Admin\ModifierGroupController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StaffController;
-use App\Http\Controllers\Admin\TableController;
-use App\Http\Controllers\KDS\TicketController;
 use App\Http\Controllers\POS\BillController;
-use App\Http\Controllers\POS\OrderController;
-use App\Http\Controllers\POS\OrderItemController;
 use App\Http\Controllers\POS\PaymentController;
+use App\Http\Controllers\POS\SaleController;
+use App\Http\Controllers\POS\SaleItemController;
 use App\Http\Controllers\Admin\ShiftController as AdminShiftController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PublicOrderController;
 use App\Http\Controllers\ShiftController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,17 +25,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', fn () => redirect()->route('login'));
-
-// Customer QR ordering - public, no login. Reached only by scanning a
-// table's printed QR code (Admin\TableController@qr), never linked from
-// anywhere in the staff-facing app. Throttled against abuse/spam.
-Route::middleware(['throttle:60,1'])
-    ->prefix('order')
-    ->name('order.')
-    ->group(function () {
-        Route::get('/{table:qr_code}', [PublicOrderController::class, 'menu'])->name('menu');
-        Route::post('/{table:qr_code}', [PublicOrderController::class, 'store'])->name('store');
-    });
 
 Route::middleware(['auth'])->group(function () {
 
@@ -71,25 +55,11 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-            Route::get('/menu-items', [MenuItemController::class, 'index'])->name('menu-items.index');
-            Route::get('/menu-items/create', [MenuItemController::class, 'create'])->name('menu-items.create');
-            Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
-            Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
-            Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
-
-            Route::get('/modifier-groups', [ModifierGroupController::class, 'index'])->name('modifier-groups.index');
-            Route::post('/modifier-groups', [ModifierGroupController::class, 'store'])->name('modifier-groups.store');
-            Route::delete('/modifier-groups/{modifierGroup}', [ModifierGroupController::class, 'destroy'])->name('modifier-groups.destroy');
-
-            Route::get('/floors', [FloorController::class, 'index'])->name('floors.index');
-            Route::post('/floors', [FloorController::class, 'store'])->name('floors.store');
-            Route::delete('/floors/{floor}', [FloorController::class, 'destroy'])->name('floors.destroy');
-
-            Route::get('/tables', [TableController::class, 'index'])->name('tables.index');
-            Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
-            Route::get('/tables/{table}/qr', [TableController::class, 'qr'])->name('tables.qr');
-            Route::patch('/tables/{table}/status', [TableController::class, 'updateStatus'])->name('tables.status');
-            Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
+            Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+            Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+            Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+            Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+            Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
             Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
             Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -103,30 +73,20 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
         });
 
-    Route::middleware(['role:admin|manager|waiter|cashier'])
+    Route::middleware(['role:admin|manager|cashier'])
         ->prefix('pos')
         ->name('pos.')
         ->group(function () {
-            Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-            Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
-            Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-            Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-            Route::post('/orders/{order}/close', [OrderController::class, 'close'])->name('orders.close');
+            Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+            Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+            Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+            Route::post('/sales/{sale}/close', [SaleController::class, 'close'])->name('sales.close');
 
-            Route::post('/orders/{order}/items', [OrderItemController::class, 'store'])->name('orders.items.store');
-            Route::post('/orders/{order}/send-to-kitchen', [OrderItemController::class, 'sendToKitchen'])->name('orders.send-to-kitchen');
-            Route::patch('/order-items/{orderItem}/status', [OrderItemController::class, 'updateStatus'])->name('order-items.status');
+            Route::post('/sales/{sale}/items', [SaleItemController::class, 'store'])->name('sales.items.store');
+            Route::delete('/sale-items/{saleItem}', [SaleItemController::class, 'destroy'])->name('sale-items.destroy');
 
-            Route::post('/orders/{order}/bills', [BillController::class, 'store'])->name('bills.store');
+            Route::post('/sales/{sale}/bills', [BillController::class, 'store'])->name('bills.store');
             Route::get('/bills/{bill}', [BillController::class, 'show'])->name('bills.show');
             Route::post('/bills/{bill}/payments', [PaymentController::class, 'store'])->name('bills.payments.store');
-        });
-
-    Route::middleware(['role:admin|manager|kitchen'])
-        ->prefix('kds')
-        ->name('kds.')
-        ->group(function () {
-            Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
-            Route::post('/tickets/{orderItem}/bump', [TicketController::class, 'bump'])->name('tickets.bump');
         });
 });

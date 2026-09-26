@@ -2,15 +2,15 @@
     <div class="max-w-md mx-auto card p-6 font-mono text-sm">
         <div class="text-center mb-4">
             <p class="font-semibold text-base">{{ config('app.name') }}</p>
-            <p class="text-xs text-zinc-500">Order #{{ $bill->order_id }} &middot; {{ $bill->order->table?->label ?? ucfirst($bill->order->type) }}</p>
+            <p class="text-xs text-zinc-500">Sale #{{ $bill->sale_id }}</p>
             <p class="text-xs text-zinc-500">{{ $bill->created_at->format('Y-m-d H:i') }}</p>
         </div>
 
         <div class="border-t border-dashed my-3"></div>
 
-        @foreach ($bill->order->items as $item)
+        @foreach ($bill->sale->items as $item)
             <div class="flex justify-between">
-                <span>{{ $item->quantity }}× {{ $item->menuItem->name }}</span>
+                <span>{{ $item->quantity }}× {{ $item->product->name }}</span>
                 <span>{{ number_format($item->lineTotal(), 2) }}</span>
             </div>
         @endforeach

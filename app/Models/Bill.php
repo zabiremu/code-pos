@@ -12,7 +12,7 @@ class Bill extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_id', 'discount_id', 'subtotal', 'tax_total',
+        'sale_id', 'discount_id', 'subtotal', 'tax_total',
         'service_charge', 'discount_total', 'grand_total', 'status',
     ];
 
@@ -24,9 +24,9 @@ class Bill extends Model
         'grand_total' => 'decimal:2',
     ];
 
-    public function order(): BelongsTo
+    public function sale(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Sale::class);
     }
 
     public function discount(): BelongsTo

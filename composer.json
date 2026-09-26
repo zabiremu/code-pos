@@ -1,8 +1,8 @@
 {
-    "name": "zabiremu/restaurant-pos",
+    "name": "zabiremu/pos",
     "type": "project",
-    "description": "Laravel restaurant/cafe POS system — table management, kitchen display, billing.",
-    "keywords": ["laravel", "pos", "restaurant", "point-of-sale"],
+    "description": "Laravel point-of-sale system — product catalog, sales, billing, stock, and staff management.",
+    "keywords": ["laravel", "pos", "point-of-sale", "retail"],
     "license": "proprietary",
     "require": {
         "php": "^8.2",

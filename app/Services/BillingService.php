@@ -5,31 +5,30 @@ namespace App\Services;
 use App\Models\Bill;
 use App\Models\Branch;
 use App\Models\Discount;
-use App\Models\Order;
+use App\Models\Sale;
 use Illuminate\Support\Collection;
 
 /**
- * Turns an order's items into one or more bills. Split-by-item support:
- * pass a subset of order item IDs to bill only those (the rest stay
- * billable later); omit it to bill everything still unbilled.
+ * Turns a sale's items into one or more bills. Split-by-item support:
+ * pass a subset of sale item IDs to bill only those (the rest stay
+ * billable later); omit it to bill everything on the sale.
  */
 class BillingService
 {
-    public function createBill(Order $order, ?Collection $itemIds = null, ?Discount $discount = null, float $serviceChargeRate = 0): Bill
+    public function createBill(Sale $sale, ?Collection $itemIds = null, ?Discount $discount = null, float $serviceChargeRate = 0): Bill
     {
-        $items = $order->items()
-            ->whereNotIn('status', ['cancelled'])
+        $items = $sale->items()
             ->when($itemIds, fn ($q) => $q->whereIn('id', $itemIds))
             ->get();
 
         $subtotal = $items->sum(fn ($item) => $item->lineTotal());
 
-        // Single-branch v1 (see the build plan): a menu item's own tax_rate
+        // Single-branch v1 (see the build plan): a product's own tax_rate
         // overrides the one branch's default rate when set.
         $defaultTaxRate = (float) (Branch::first()?->tax_rate ?? 0);
 
         $taxTotal = $items->sum(function ($item) use ($defaultTaxRate) {
-            $rate = $item->menuItem->tax_rate !== null ? (float) $item->menuItem->tax_rate : $defaultTaxRate;
+            $rate = $item->product->tax_rate !== null ? (float) $item->product->tax_rate : $defaultTaxRate;
 
             return $item->lineTotal() * ($rate / 100);
         });
@@ -44,7 +43,7 @@ class BillingService
         $serviceCharge = $subtotal * ($serviceChargeRate / 100);
         $grandTotal = $subtotal + $taxTotal + $serviceCharge - $discountTotal;
 
-        return $order->bills()->create([
+        return $sale->bills()->create([
             'discount_id' => $discount?->id,
             'subtotal' => round($subtotal, 2),
             'tax_total' => round($taxTotal, 2),
@@ -68,9 +67,5 @@ class BillingService
         $bill->update([
             'status' => $bill->balanceDue() <= 0 ? 'paid' : 'partially_paid',
         ]);
-
-        if ($bill->status === 'paid' && $bill->order->table_id) {
-            $bill->order->table->update(['status' => 'billed']);
-        }
     }
 }

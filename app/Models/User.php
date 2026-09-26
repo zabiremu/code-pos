@@ -50,8 +50,8 @@ class User extends Authenticatable
         return $this->shifts()->whereNull('clock_out')->latest('clock_in')->first();
     }
 
-    public function waiterOrders(): HasMany
+    public function sales(): HasMany
     {
-        return $this->hasMany(Order::class, 'waiter_id');
+        return $this->hasMany(Sale::class, 'cashier_id');
     }
 }

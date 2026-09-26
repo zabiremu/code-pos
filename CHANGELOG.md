@@ -1,5 +1,51 @@
 # Changelog
 
+## 2.0.0
+
+**Converted from a restaurant/cafe POS into a generic retail POS.** The
+restaurant-specific differentiators (dine-in floor/table management, the
+Kitchen Display System, per-item recipe/ingredient stock, modifiers/variants,
+and QR-code table self-ordering) are gone; the app is now aimed at any small
+retail business.
+
+- **Data model**: `MenuItem` → `Product` (adds `sku`, and per-product
+  `track_stock`/`stock_quantity`/`low_stock_threshold` — stock is now
+  tracked directly on the product instead of via a separate ingredient/
+  recipe system); `Order` → `Sale`; `OrderItem` → `SaleItem`; `Bill` now
+  belongs to a `Sale` instead of an `Order`. `Category` is unchanged (it was
+  already generic)
+- **Removed entirely**: `floors`/`tables` (dining-table management),
+  `item_variants`, `modifier_groups`/`modifiers`, `ingredients` +
+  the ingredient/recipe pivot, the Kitchen Display System
+  (`App\Http\Controllers\KDS\TicketController`, `App\Events\
+  OrderItemStatusUpdated`, station-filtered tickets, Echo/Pusher
+  broadcasting), and QR-code customer self-ordering
+  (`PublicOrderController`, the public no-login menu, `Admin\
+  TableController@qr`) — all of these were dine-in/restaurant-specific
+- **Stock**: `StockService` now deducts a product's stock the moment it's
+  added to a sale (not on a "served" kitchen-status transition, since there
+  is no longer a kitchen workflow), and restores it if the line item is
+  removed from a still-open sale
+- **Sale lifecycle simplified**: `open → billed → closed` (drops the
+  restaurant-only `sent`/`served` kitchen-prep stages); a sale item is a
+  flat product/quantity/notes line with no per-item status, variant, or
+  modifier selection
+- **Roles simplified**: `waiter` and `kitchen` are gone; the fixed role set
+  is now `admin`, `manager`, `cashier`
+- **Routes/nav**: `admin.menu-items.*` → `admin.products.*`;
+  `pos.orders.*` → `pos.sales.*`; the `kds.*` and public `order.*` route
+  groups, and the admin Floors/Tables/Modifier Groups screens, are removed;
+  the sidebar and dashboard were updated to match
+- Branding: default `APP_NAME`/`DB_DATABASE`/`composer.json` name and
+  description are now generic ("POS" / `pos`) instead of restaurant-themed;
+  the red/charcoal/white visual theme itself is unchanged
+- Test suite updated to match: `OrderFlowTest` → `SaleFlowTest`,
+  `OrdersIndexTest` → `SalesIndexTest`, `PublicOrderingTest` removed,
+  `RoleEnumTest`/`RoleAccessTest`/others updated for the new role set
+- This conversion has only been checked statically (`php -l`, manual
+  route/view/foreign-key cross-checking) — see the README's "Still open"
+  section for what to verify once `composer install` can actually run
+
 ## 1.2.0
 
 **Employee management & attendance.** The `shifts` table

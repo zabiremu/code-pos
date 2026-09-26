@@ -19,9 +19,9 @@
 set -euo pipefail
 
 VERSION="${1:-$(grep -m1 '^## ' CHANGELOG.md | sed 's/## //')}"
-DIST="dist/restaurant-pos-${VERSION}"
+DIST="dist/pos-${VERSION}"
 
-echo "Packaging Restaurant POS v${VERSION} for CodeCanyon submission..."
+echo "Packaging POS v${VERSION} for CodeCanyon submission..."
 
 rm -rf "$DIST"
 mkdir -p "$DIST/documentation" "$DIST/licensing" "$DIST/main-files"
@@ -47,9 +47,9 @@ rsync -a --exclude='.git' \
          --exclude='package-for-envato.sh' \
          --exclude='phpunit.xml' \
          --exclude='.editorconfig' \
-         ./ "$DIST/main-files/restaurant-pos/"
+         ./ "$DIST/main-files/pos/"
 
-if [ ! -d "$DIST/main-files/restaurant-pos/vendor" ]; then
+if [ ! -d "$DIST/main-files/pos/vendor" ]; then
   echo
   echo "WARNING: vendor/ was not found — run 'composer install --no-dev"
   echo "--optimize-autoloader' first, from an environment with real internet"
@@ -59,10 +59,10 @@ if [ ! -d "$DIST/main-files/restaurant-pos/vendor" ]; then
 fi
 
 cd dist
-zip -rq "restaurant-pos-${VERSION}.zip" "restaurant-pos-${VERSION}"
+zip -rq "pos-${VERSION}.zip" "pos-${VERSION}"
 cd ..
 
-echo "Done: dist/restaurant-pos-${VERSION}.zip"
+echo "Done: dist/pos-${VERSION}.zip"
 echo "  documentation/documentation.html"
 echo "  licensing/LICENSE.txt"
-echo "  main-files/restaurant-pos/  (the app itself)"
+echo "  main-files/pos/  (the app itself)"

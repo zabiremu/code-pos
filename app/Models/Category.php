@@ -25,8 +25,8 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    public function menuItems(): HasMany
+    public function products(): HasMany
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->hasMany(Product::class);
     }
 }

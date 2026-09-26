@@ -32,13 +32,6 @@ class RoleAccessTest extends TestCase
             ->assertOk();
     }
 
-    public function test_waiter_is_forbidden_from_the_admin_dashboard(): void
-    {
-        $this->actingAs($this->staff('waiter'))
-            ->get('/admin/dashboard')
-            ->assertForbidden();
-    }
-
     public function test_cashier_is_forbidden_from_the_admin_dashboard(): void
     {
         $this->actingAs($this->staff('cashier'))
@@ -46,36 +39,27 @@ class RoleAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_waiter_can_reach_the_pos_orders_screen(): void
-    {
-        $this->actingAs($this->staff('waiter'))
-            ->get('/pos/orders')
-            ->assertOk();
-    }
-
-    public function test_cashier_can_reach_the_pos_orders_screen(): void
+    public function test_cashier_can_reach_the_pos_sales_screen(): void
     {
         // Regression: the pos.* route group originally only granted
-        // admin|manager|waiter, so a cashier - one of the five roles the
-        // app itself defines (App\Enums\Role) - had no accessible page at
-        // all past login. See routes/web.php.
+        // admin|manager|waiter, so a cashier - one of the roles the app
+        // itself defines (App\Enums\Role) - had no accessible page at all
+        // past login. See routes/web.php.
         $this->actingAs($this->staff('cashier'))
-            ->get('/pos/orders')
+            ->get('/pos/sales')
             ->assertOk();
     }
 
-    public function test_kitchen_role_can_reach_the_kds_board_but_not_pos_orders(): void
+    public function test_admin_can_reach_the_pos_sales_screen(): void
     {
-        $kitchen = $this->staff('kitchen');
-
-        $this->actingAs($kitchen)->get('/kds/tickets')->assertOk();
-        $this->actingAs($kitchen)->get('/pos/orders')->assertForbidden();
+        $this->actingAs($this->staff('admin'))
+            ->get('/pos/sales')
+            ->assertOk();
     }
 
-    public function test_waiter_cannot_reach_the_kitchen_display(): void
+    public function test_guests_are_redirected_to_login(): void
     {
-        $this->actingAs($this->staff('waiter'))
-            ->get('/kds/tickets')
-            ->assertForbidden();
+        $this->get('/admin/dashboard')->assertRedirect('/login');
+        $this->get('/pos/sales')->assertRedirect('/login');
     }
 }

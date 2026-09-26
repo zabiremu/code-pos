@@ -15,10 +15,10 @@
     </div>
 
     <div class="card divide-y">
-        <p class="px-5 py-3 font-medium text-sm">Top items</p>
+        <p class="px-5 py-3 font-medium text-sm">Top products</p>
         @foreach ($topItems as $row)
             <div class="flex justify-between px-5 py-2 text-sm">
-                <span>{{ $row->menuItem->name }}</span>
+                <span>{{ $row->product->name }}</span>
                 <span>{{ $row->qty }} sold</span>
             </div>
         @endforeach
