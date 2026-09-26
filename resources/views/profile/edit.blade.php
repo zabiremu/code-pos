@@ -7,7 +7,7 @@
     just the same information-dense settings-page shape.
 --}}
 <x-layouts.admin :title="'My Profile'">
-    <div class="max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    <div class="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {{-- Profile information --}}
         <div class="card">
