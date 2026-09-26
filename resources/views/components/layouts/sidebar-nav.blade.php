@@ -28,33 +28,18 @@
         </a>
     @endif
 
-    @if ($user?->hasAnyRole(['admin', 'manager', 'waiter', 'cashier']))
-        <a href="{{ route('pos.orders.index') }}" class="{{ request()->routeIs('pos.*') ? 'nav-link-active' : 'nav-link' }}">
-            Orders
-        </a>
-    @endif
-
-    @if ($user?->hasAnyRole(['admin', 'manager', 'kitchen']))
-        <a href="{{ route('kds.tickets.index') }}" class="{{ request()->routeIs('kds.*') ? 'nav-link-active' : 'nav-link' }}">
-            Kitchen Display
+    @if ($user?->hasAnyRole(['admin', 'manager', 'cashier']))
+        <a href="{{ route('pos.sales.index') }}" class="{{ request()->routeIs('pos.*') ? 'nav-link-active' : 'nav-link' }}">
+            Sales
         </a>
     @endif
 
     @if ($isAdminOrManager)
         <div>
-            <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Menu</p>
+            <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Catalog</p>
             <div class="space-y-1">
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'nav-link-active' : 'nav-link' }}">Categories</a>
-                <a href="{{ route('admin.menu-items.index') }}" class="{{ request()->routeIs('admin.menu-items.*') ? 'nav-link-active' : 'nav-link' }}">Menu Items</a>
-                <a href="{{ route('admin.modifier-groups.index') }}" class="{{ request()->routeIs('admin.modifier-groups.*') ? 'nav-link-active' : 'nav-link' }}">Modifier Groups</a>
-            </div>
-        </div>
-
-        <div>
-            <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Floor</p>
-            <div class="space-y-1">
-                <a href="{{ route('admin.floors.index') }}" class="{{ request()->routeIs('admin.floors.*') ? 'nav-link-active' : 'nav-link' }}">Floors</a>
-                <a href="{{ route('admin.tables.index') }}" class="{{ request()->routeIs('admin.tables.*') ? 'nav-link-active' : 'nav-link' }}">Tables</a>
+                <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'nav-link-active' : 'nav-link' }}">Products</a>
             </div>
         </div>
 

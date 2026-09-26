@@ -1,4 +1,4 @@
-Restaurant POS
+POS
 Copyright (c) Zabir Raihan (Envato author: Zabir_Raihan)
 
 This item is licensed under the terms of the Envato Market license you

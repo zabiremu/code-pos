@@ -12,7 +12,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code')->nullable()->unique();
-            $table->enum('type', ['flat', 'percent']);
+            // 'fixed', not 'flat' - App\Services\BillingService and the
+            // BillingServiceTest fixed-discount cases both compare against
+            // the literal 'fixed'; MySQL enforces ENUM values at the DB
+            // level (SQLite doesn't), so a mismatch here would silently
+            // reject every fixed-amount discount insert in production.
+            $table->enum('type', ['fixed', 'percent']);
             $table->decimal('value', 10, 2);
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();

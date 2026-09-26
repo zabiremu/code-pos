@@ -18,7 +18,7 @@ class ShiftTest extends TestCase
 
     public function test_a_user_can_clock_in(): void
     {
-        $user = $this->staff('waiter');
+        $user = $this->staff('cashier');
 
         $this->actingAs($user)
             ->post(route('shifts.clock-in'), ['opening_till' => 100])
@@ -34,7 +34,7 @@ class ShiftTest extends TestCase
 
     public function test_a_user_cannot_clock_in_twice(): void
     {
-        $user = $this->staff('waiter');
+        $user = $this->staff('cashier');
         $user->shifts()->create(['clock_in' => now(), 'opening_till' => 50]);
 
         $this->actingAs($user)
@@ -46,7 +46,7 @@ class ShiftTest extends TestCase
 
     public function test_a_user_can_clock_out_of_their_active_shift(): void
     {
-        $user = $this->staff('waiter');
+        $user = $this->staff('cashier');
         $shift = $user->shifts()->create(['clock_in' => now(), 'opening_till' => 50]);
 
         $this->actingAs($user)
@@ -61,7 +61,7 @@ class ShiftTest extends TestCase
 
     public function test_a_user_cannot_clock_out_when_not_clocked_in(): void
     {
-        $user = $this->staff('waiter');
+        $user = $this->staff('cashier');
 
         $this->actingAs($user)
             ->post(route('shifts.clock-out'), ['closing_till' => 100])

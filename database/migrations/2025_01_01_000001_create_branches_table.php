@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * A physical restaurant location. Single-branch installs use the one
+     * A physical store location. Single-branch installs use the one
      * seeded default branch; multi-branch is a later phase (see the build plan).
      */
     public function up(): void

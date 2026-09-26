@@ -1,55 +1,41 @@
-# Restaurant POS (CodeCanyon Edition)
+# POS (CodeCanyon Edition)
 
-A Laravel-based Point-of-Sale system built for restaurants and cafes,
-targeting submission to Envato CodeCanyon.
+A Laravel-based, general-purpose Point-of-Sale system for retail and small
+businesses, targeting submission to Envato CodeCanyon.
 
-**Status:** The full Laravel 12 skeleton, phases 1–6 of the build plan, and
-a red/white brand theme are all in this repo — schema, roles, menu & floor
-management, order taking + KDS, billing, reports/stock, the web installer,
-Envato purchase-code verification, and a hand-built login (staff accounts
-are created by an admin — see below — so there's no self-registration
-flow). This has been run end-to-end against a live cPanel deploy (real
-`composer install`, real `npm run build`, real MySQL) — see commit history
-for every bug that surfaced along the way and its fix. A PHPUnit test suite
-covers the core flows; see Testing below for how to run it against your own
+**Status:** originally built as a restaurant/cafe POS (table management,
+kitchen display, QR self-ordering); as of `2.0.0` it has been converted into
+a generic retail POS aimed at a much broader buyer base — see the Changelog
+for exactly what changed and why. The full Laravel 12 skeleton, schema,
+roles, product catalog, sale taking + billing, reports/stock, the web
+installer, Envato purchase-code verification, and a hand-built login (staff
+accounts are created by an admin — see below — so there's no
+self-registration flow) are all in this repo. A PHPUnit test suite covers
+the core flows; see Testing below for how to run it against your own
 `vendor/`.
-
-Full build plan (feature modules, database schema, architecture, Envato
-compliance checklist, installer design, packaging, milestones) lives in the
-project's Claude Docs plan.
 
 ## Features
 
-- **Menu management** — categories (with parent/child nesting), menu items
-  with per-item price and tax-rate overrides, item variants, modifier
-  groups (required / max-selectable), and a recipe-style ingredient list
-  per item for stock deduction
-- **Floor & table management** — floors, tables with seat counts and a
-  live status (free / occupied / reserved)
-- **Order taking** — dine-in / takeaway / delivery, line items with
-  modifiers and notes, a per-item status lifecycle (pending → sent →
-  preparing → ready → served), send-to-kitchen in one action
-- **Kitchen Display System** — station-filterable ticket board, live
-  updates over Laravel Echo/Pusher when configured, falls back to
-  polling every 5s on shared hosting with no broadcast service
+- **Product catalog** — categories (with parent/child nesting), products
+  with SKU, per-product price and tax-rate overrides, and optional
+  per-product stock tracking (quantity + low-stock threshold)
+- **Sales** — a simple cart-style sale (add products, adjust quantities,
+  remove a line) that a cashier opens, bills, and closes
 - **Billing** — tax, service charge, and percent/fixed discounts; split
-  billing by a subset of an order's items; multiple payments per bill
+  billing by a subset of a sale's items; multiple payments per bill
   (cash / card / mobile wallet / other) with automatic paid / partially
   paid status
-- **Reports** — daily sales with top-selling items, low-stock ingredient
-  alerts, an admin dashboard with today's orders/revenue at a glance
-- **Role-based access** — five roles (admin, manager, cashier, waiter,
-  kitchen) via spatie/laravel-permission, each gated to the routes that
-  role actually needs
+- **Stock** — optional per-product stock tracking, deducted automatically
+  the moment an item is added to a sale (and restored if removed before
+  billing); a low-stock report and dashboard count
+- **Reports** — daily sales with top-selling products, low-stock alerts,
+  an admin dashboard with today's sales/revenue at a glance
+- **Role-based access** — three roles (admin, manager, cashier) via
+  spatie/laravel-permission, each gated to the routes that role actually
+  needs
 - **Web installer** — a five-step wizard (requirements check → Envato
   purchase-code verification → database setup → done) so a buyer never
   touches the command line; locks itself shut after first run
-- **QR-code customer self-ordering** — each table gets a unique, non-guessable
-  link (`Admin\TableController@qr`, printable from the Tables screen); a
-  customer scans it, browses the live menu, and submits a cart with no
-  login — it lands as pending items on that table's order exactly as if a
-  waiter had typed them in, so staff still review and send them to the
-  kitchen from the normal POS screen
 - **Employee management & attendance** — a full employee profile screen
   (name/email/phone/branch/role/active-status) alongside the existing
   add/remove staff list; every employee gets a self-service clock-in/
@@ -66,8 +52,6 @@ project's Claude Docs plan.
 - MySQL 8 (production) / SQLite works for local dev or tests
 - Blade + Alpine.js + Tailwind CSS — red/white brand theme (see Features)
 - spatie/laravel-permission (roles), Laravel Sanctum (API auth)
-- Laravel Echo + Pusher/self-hosted Soketi for the Kitchen Display System,
-  with a polling fallback for shared-hosting installs
 
 ## Setup
 
@@ -75,7 +59,7 @@ project's Claude Docs plan.
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate --seed   # seeds roles, a demo admin (admin@example.com / password), and a sample menu
+php artisan migrate --seed   # seeds roles, a demo admin (admin@example.com / password), and a sample catalog
 php artisan serve
 ```
 
@@ -111,13 +95,16 @@ so `https://yourdomain.com/login` works instead of
 If your Document Root *is* already set to `public/`, this file is inert and
 safe to leave in place (or delete).
 
-> `composer install` and `npm run build` have both been run against this
-> repo and it boots end-to-end on a live cPanel deploy (see commit history)
-> — `vendor/` still isn't committed (install it yourself), but
-> `public/build/` (the compiled Tailwind/Alpine output) *is* committed, since
-> most shared hosts have no Node.js available to run `npm run build` on the
-> server itself. Re-run `npm run build` and commit the new `public/build/`
-> output any time you change something under `resources/`.
+> `composer install` and `npm run build` have both been run against the
+> pre-pivot (`1.x`, restaurant-specific) version of this repo on a live
+> cPanel deploy (see commit history for the bugs that surfaced and got fixed
+> that way). The `2.0.0` conversion to a generic POS itself has only been
+> checked statically (see Testing) — re-run both before submitting.
+> `vendor/` still isn't committed (install it yourself), but `public/build/`
+> (the compiled Tailwind/Alpine output) *is* committed, since most shared
+> hosts have no Node.js available to run `npm run build` on the server
+> itself. Re-run `npm run build` and commit the new `public/build/` output
+> any time you change something under `resources/`.
 
 ## Testing
 
@@ -132,19 +119,16 @@ never touch your real `.env`/MySQL setup. Coverage includes: login (valid
 credentials, wrong password, deactivated account, guest redirects, and the
 rate limiter locking out repeated bad attempts), every role-gated route
 group (a regression suite for the `role:` middleware — see the comment in
-`tests/Feature/RoleAccessTest.php` for the exact bug it guards against),
-the full order lifecycle (open → add item → send to kitchen → bump through
-KDS → bill → pay → close), the orders list's status-tab/search filtering,
-QR self-ordering (menu access by token — not by guessable numeric id —
-cart submission, and reusing an already-open tab instead of duplicating
-it), profile/password self-service, employee management (full-profile edit,
-email-uniqueness-ignoring-self, deactivating an account), shift clock-in/
-clock-out (including the already-clocked-in / not-clocked-in error paths)
-and the admin attendance report's role gating and filters,
-`BillingService`'s tax/discount/service-charge math in isolation, the
-`.env`-writing helper the installer uses (quoting/escaping — see Security
-below), the roles/admin seeder, and the dashboard's revenue/low-stock
-figures.
+`tests/Feature/RoleAccessTest.php` for the exact bug it guards against), the
+full sale lifecycle (open → add item → bill → pay → close), the sales
+list's status-tab/search filtering, profile/password self-service, employee
+management (full-profile edit, email-uniqueness-ignoring-self, deactivating
+an account), shift clock-in/clock-out (including the already-clocked-in /
+not-clocked-in error paths) and the admin attendance report's role gating
+and filters, `BillingService`'s tax/discount/service-charge math in
+isolation, the `.env`-writing helper the installer uses (quoting/escaping —
+see Security below), the roles/admin seeder, and the dashboard's
+revenue/low-stock figures.
 
 This was written and statically checked (every file passes `php -l`, every
 route → controller → view → Blade-component reference was cross-checked,
@@ -188,48 +172,37 @@ A quick account of what's actually been checked, not just claimed:
   which leaks stack traces - file paths, query values, env vars - to
   anyone who hits an error page if a buyer never changes it before going
   live)
-- **QR ordering abuse** — the public menu/order routes are throttled
-  (`throttle:60,1`) and only ever reachable via a table's own random
-  32-character token, never linked from anywhere in the staff-facing app
 
 ## What's here
 
 - `database/migrations/` — full schema: users/roles/permissions, branches,
-  floors, tables, menu categories/items/variants/modifiers, ingredients,
-  orders, bills, payments, shifts, stock movements, discounts
+  categories/products, sales, sale items, bills, payments, shifts, stock
+  movements, discounts
 - `app/Models/` — matching Eloquent models with relationships
 - `app/Enums/Role.php`, `database/seeders/RolesAndAdminSeeder.php`,
-  `database/seeders/DemoMenuSeeder.php` — the five POS roles, a demo admin,
-  and a sample menu/floor plan so a fresh install has something to click
+  `database/seeders/DemoProductSeeder.php` — the three POS roles, a demo
+  admin, and a sample catalog so a fresh install has something to click
   through immediately
 - `app/Http/Controllers/Auth/AuthenticatedSessionController.php` +
   `routes/auth.php` — login/logout; staff accounts are created via
   `Admin\StaffController`, not self-registered
-- `app/Http/Controllers/Admin/` — categories, menu items, modifier groups,
-  floors, tables, staff, reports (sales + low stock), dashboard
-- `app/Http/Controllers/POS/` — order taking (`OrderController`,
-  `OrderItemController`), billing (`BillController`, `PaymentController`)
-- `app/Http/Controllers/KDS/TicketController.php` — kitchen ticket board,
-  grouped by station, with `App\Events\OrderItemStatusUpdated` broadcasting
-  status changes (polling fallback baked into the view)
+- `app/Http/Controllers/Admin/` — categories, products, staff, reports
+  (sales + low stock), dashboard
+- `app/Http/Controllers/POS/` — sale taking (`SaleController`,
+  `SaleItemController`), billing (`BillController`, `PaymentController`)
 - `app/Services/BillingService.php` — bill generation (incl. split billing
   by item), tax/discount/service-charge math, payment recording
-- `app/Services/StockService.php` + `app/Observers/OrderItemObserver.php` —
-  ingredient stock deducted automatically when an item is marked served
+- `app/Services/StockService.php` — per-product stock deducted the moment
+  an item is added to a sale, restored if it's removed before billing
 - `app/Http/Controllers/Install/InstallController.php` +
   `app/Services/PurchaseCodeService.php` — the web installer wizard
   (requirements check → purchase code → database → migrate/seed → finish)
-- `app/Http/Controllers/PublicOrderController.php` +
-  `resources/views/public/order-menu.blade.php` — the QR self-ordering
-  menu; `Admin\TableController@qr` renders the printable QR code
-  (client-side, via the `qrcode` npm package - no new Composer dependency)
 - `app/Http/Controllers/ProfileController.php` +
   `resources/views/profile/edit.blade.php` — self-service profile/password
   editing, open to any authenticated role
 - `app/Http/Controllers/ShiftController.php` — self-service clock-in/
   clock-out, open to any authenticated role, backed by `User::activeShift()`
-  and the `shifts` table (already in the original schema for cash-drawer
-  reconciliation, but unwired until now); the header widget lives in
+  and the `shifts` table; the header widget lives in
   `resources/views/components/layouts/admin.blade.php`
 - `app/Http/Controllers/Admin/ShiftController.php` +
   `resources/views/admin/shifts/index.blade.php` — the admin/manager
@@ -268,9 +241,6 @@ to trace it themselves):
 | maatwebsite/excel | MIT |
 | alpinejs | MIT |
 | tailwindcss | MIT |
-| laravel-echo | MIT |
-| pusher-js | MIT |
-| qrcode | MIT |
 | vite | MIT |
 
 No third-party fonts, icon packs, images, or other bundled binary assets
@@ -281,33 +251,33 @@ inline SVG, not a licensed icon set.
 
 Honestly, in priority order:
 
-- **Run the real test suite once, for real.** Every check in this repo's
-  history (including this pass's) was done by static analysis — `php -l`,
-  and custom scripts cross-checking route/view/component references and
-  Blade directive balance — because Packagist is network-blocked in the
-  environment this was built in, so `composer install` has never actually
-  been run here. It *has* been run successfully against a live cPanel
-  deploy previously (see commit history for the bugs that surfaced and got
-  fixed that way), but that was reactive, not `php artisan test` catching
-  things before they shipped. Run `composer install && php artisan test`
-  yourself before submitting - if anything surfaces, it's cheaper to find
-  now than after a reviewer or buyer does.
+- **Run the real test suite once, for real**, specifically against the
+  `2.0.0` generic-POS conversion — every check on this branch so far
+  (including the pivot itself) was done by static analysis (`php -l`, and
+  manual route/view/component/foreign-key cross-checking), because
+  Packagist is network-blocked in the environment this was built in, so
+  `composer install` has never actually been run against this version.
+  Run `composer install && php artisan test` yourself before submitting —
+  if anything surfaces, it's cheaper to find now than after a reviewer or
+  buyer does.
 - **CodeCanyon preview assets** (can't be produced from a hand-built repo -
   need an actual running instance): a portrait feature-preview image, a
   590×300 thumbnail, and a 5-8 minute walkthrough video. Screenshot, at
-  minimum: the dashboard, the orders list (all four status tabs), an open
-  order's item screen, the KDS board, a generated bill, the floor/tables
-  view, the QR ordering menu on an actual phone, the QR print page, the
-  installer's purchase-code step, and the profile/password screen. Real
-  screenshots of a real screen beat a mockup every time on this platform.
-- **Manual QA on the full order lifecycle end to end**, on a phone for the
-  QR ordering flow specifically (open a table's QR link, order, confirm it
-  shows up correctly as a pending item back on the POS side, send it to
-  the kitchen, bump it through KDS, bill it, pay it).
+  minimum: the dashboard, the sales list (all status tabs), an open sale's
+  item screen, a generated bill, the product catalog, the installer's
+  purchase-code step, and the profile/password screen. Real screenshots of
+  a real screen beat a mockup every time on this platform.
+- **Manual QA on the full sale lifecycle end to end** (open a sale, add
+  items, confirm stock deducts, bill it, pay it, close it).
 - **Browser/device compatibility** — Envato's own review checklist asks
   for this explicitly; hasn't been checked here at all.
-- Table drag-and-drop floor-plan editor (current admin view is a card-based
-  list with live status colors, not a freeform drag canvas)
+- **A product edit screen** — `Admin\ProductController::update()` exists
+  and is tested at the HTTP layer, but there's no edit UI wired to it yet
+  (only create + list + delete); this gap pre-dates the pivot.
+- **Product variants/options** (e.g. size/color) were deliberately dropped
+  in the generic-POS conversion for simplicity — worth adding back as a
+  generic "product options" feature if buyer demand calls for it (see
+  Changelog `2.0.0`)
 - Multi-branch (deliberately deferred — see the build plan)
 - The Envato compliance pass itself: run through the checklist in the build
   plan against this actual code (debug-mode error check, final packaging
@@ -315,12 +285,10 @@ Honestly, in priority order:
 - A live demo deployment with the test credentials shown on the listing page
   (there's a `.github/workflows/main.yml` FTP deploy workflow already set up
   for this — see repo secrets)
-- Envato's stated rejection criteria explicitly flag items "too similar to
-  existing catalog items" without a standout feature - QR self-ordering is
-  this repo's answer to that, but a second differentiator (e.g. a WhatsApp/
-  SMS order-ready notification, or a bKash/Nagad/SSLCommerz payment
-  integration for the BD market specifically) would meaningfully strengthen
-  the listing further
+- A standout differentiator feature for the generic-POS listing (the
+  restaurant edition's QR self-ordering doesn't apply anymore) — e.g. a
+  barcode-scanner-friendly SKU lookup, CSV product import/export, or a
+  receipt-printer integration would meaningfully strengthen the listing
 
 ## License
 Proprietary — intended for commercial distribution via Envato CodeCanyon.

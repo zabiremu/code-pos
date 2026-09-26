@@ -17,11 +17,6 @@ class Branch extends Model
         'is_active' => 'boolean',
     ];
 
-    public function floors(): HasMany
-    {
-        return $this->hasMany(Floor::class);
-    }
-
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

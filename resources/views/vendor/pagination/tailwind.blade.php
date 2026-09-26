@@ -1,7 +1,7 @@
 {{--
     Laravel's own pagination markup, with the active-page accent swapped
     from its default indigo to this app's primary (red) so paginated pages
-    (categories, menu items, orders) stay on-brand. Laravel automatically
+    (categories, products, sales) stay on-brand. Laravel automatically
     picks up this file instead of the package's built-in view because it
     lives at resources/views/vendor/pagination/tailwind.blade.php.
 --}}

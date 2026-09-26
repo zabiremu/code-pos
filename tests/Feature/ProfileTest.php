@@ -30,7 +30,7 @@ class ProfileTest extends TestCase
 
     public function test_user_can_update_their_profile_details(): void
     {
-        $user = $this->staff('waiter', ['name' => 'Old Name']);
+        $user = $this->staff('cashier', ['name' => 'Old Name']);
 
         $this->actingAs($user)
             ->put(route('profile.update'), [
@@ -46,7 +46,7 @@ class ProfileTest extends TestCase
 
     public function test_profile_update_rejects_an_email_already_used_by_someone_else(): void
     {
-        $user = $this->staff('waiter');
+        $user = $this->staff('cashier');
         $other = $this->staff('cashier');
 
         $this->actingAs($user)
@@ -60,7 +60,7 @@ class ProfileTest extends TestCase
 
     public function test_user_can_update_their_password_with_the_correct_current_password(): void
     {
-        $user = $this->staff('kitchen'); // UserFactory's default password is 'password'
+        $user = $this->staff('manager'); // UserFactory's default password is 'password'
 
         $this->actingAs($user)
             ->put(route('profile.password'), [
@@ -75,7 +75,7 @@ class ProfileTest extends TestCase
 
     public function test_password_update_is_rejected_with_the_wrong_current_password(): void
     {
-        $user = $this->staff('kitchen');
+        $user = $this->staff('manager');
 
         $this->actingAs($user)
             ->put(route('profile.password'), [
