@@ -50,6 +50,12 @@ project's Claude Docs plan.
   login — it lands as pending items on that table's order exactly as if a
   waiter had typed them in, so staff still review and send them to the
   kitchen from the normal POS screen
+- **Employee management & attendance** — a full employee profile screen
+  (name/email/phone/branch/role/active-status) alongside the existing
+  add/remove staff list; every employee gets a self-service clock-in/
+  clock-out widget in the header (opening/closing till amounts recorded
+  per shift) and admin/manager get an attendance report across everyone,
+  filterable by employee or to just who's currently clocked in
 - **Brand theme** — a red/charcoal/white visual identity (see
   `tailwind.config.js`'s `primary` color and `resources/css/app.css`'s
   shared component classes) applied consistently across every screen,
@@ -131,10 +137,14 @@ the full order lifecycle (open → add item → send to kitchen → bump through
 KDS → bill → pay → close), the orders list's status-tab/search filtering,
 QR self-ordering (menu access by token — not by guessable numeric id —
 cart submission, and reusing an already-open tab instead of duplicating
-it), profile/password self-service, `BillingService`'s tax/discount/
-service-charge math in isolation, the `.env`-writing helper the installer
-uses (quoting/escaping — see Security below), the roles/admin seeder, and
-the dashboard's revenue/low-stock figures.
+it), profile/password self-service, employee management (full-profile edit,
+email-uniqueness-ignoring-self, deactivating an account), shift clock-in/
+clock-out (including the already-clocked-in / not-clocked-in error paths)
+and the admin attendance report's role gating and filters,
+`BillingService`'s tax/discount/service-charge math in isolation, the
+`.env`-writing helper the installer uses (quoting/escaping — see Security
+below), the roles/admin seeder, and the dashboard's revenue/low-stock
+figures.
 
 This was written and statically checked (every file passes `php -l`, every
 route → controller → view → Blade-component reference was cross-checked,
@@ -216,6 +226,19 @@ A quick account of what's actually been checked, not just claimed:
 - `app/Http/Controllers/ProfileController.php` +
   `resources/views/profile/edit.blade.php` — self-service profile/password
   editing, open to any authenticated role
+- `app/Http/Controllers/ShiftController.php` — self-service clock-in/
+  clock-out, open to any authenticated role, backed by `User::activeShift()`
+  and the `shifts` table (already in the original schema for cash-drawer
+  reconciliation, but unwired until now); the header widget lives in
+  `resources/views/components/layouts/admin.blade.php`
+- `app/Http/Controllers/Admin/ShiftController.php` +
+  `resources/views/admin/shifts/index.blade.php` — the admin/manager
+  attendance report over every employee's shifts, filterable by employee
+  or to just who's currently clocked in
+- `app/Http/Controllers/Admin/StaffController.php` +
+  `resources/views/admin/staff/show.blade.php` — the full employee profile/
+  edit screen (name/email/phone/branch/role/active-status, plus that
+  employee's own shift history), reached from the staff list
 - `resources/css/app.css`, `tailwind.config.js` — the red/white brand theme:
   shared button/card/badge/input component classes and the `primary` color
   scale, used consistently by every view

@@ -13,8 +13,10 @@ use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\OrderController;
 use App\Http\Controllers\POS\OrderItemController;
 use App\Http\Controllers\POS\PaymentController;
+use App\Http\Controllers\Admin\ShiftController as AdminShiftController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicOrderController;
+use App\Http\Controllers\ShiftController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,6 +52,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
     });
 
+    // Shift clock-in/out - any authenticated role (part of Employee
+    // Management). Admin\ShiftController below (admin|manager only) is the
+    // attendance report over everyone's shifts.
+    Route::prefix('shifts')->name('shifts.')->group(function () {
+        Route::post('/clock-in', [ShiftController::class, 'clockIn'])->name('clock-in');
+        Route::post('/clock-out', [ShiftController::class, 'clockOut'])->name('clock-out');
+    });
+
     Route::middleware(['role:admin|manager'])
         ->prefix('admin')
         ->name('admin.')
@@ -83,8 +93,11 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
             Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+            Route::get('/staff/{staffMember}', [StaffController::class, 'show'])->name('staff.show');
             Route::put('/staff/{staffMember}', [StaffController::class, 'update'])->name('staff.update');
             Route::delete('/staff/{staffMember}', [StaffController::class, 'destroy'])->name('staff.destroy');
+
+            Route::get('/shifts', [AdminShiftController::class, 'index'])->name('shifts.index');
 
             Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');

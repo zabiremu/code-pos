@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.2.0
+
+**Employee management & attendance.** The `shifts` table
+(`opening_till`/`closing_till`, for cash-drawer reconciliation) already
+existed in the original schema and model layer but had zero controller/
+route/view wired up to it - this release builds that missing layer, plus
+turns the bare staff add/remove list into a full employee profile screen.
+
+- **Self-service clock-in/clock-out**: a header widget (any authenticated
+  role) records the opening till amount at clock-in and the closing till
+  amount at clock-out; rejects a double clock-in or a clock-out with no
+  active shift
+- **Full employee profile screen**: name/email/phone/branch/role/active-
+  status editing (was previously role + active-status only), reachable
+  from the staff list, with that employee's own shift history alongside it
+- **Admin attendance report**: every employee's shift history in one
+  place, filterable by employee or to just who's currently clocked in -
+  admin|manager only, same as the rest of `Admin\*`
+- New tests: clock-in/out success and error paths, full employee-profile
+  editing (including email-uniqueness-ignoring-self and deactivating an
+  account), and the attendance report's role gating and filters
+
 ## 1.1.0
 
 Focused on CodeCanyon submission-readiness: a standout feature, and a real

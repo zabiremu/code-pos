@@ -62,6 +62,7 @@
             <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Manage</p>
             <div class="space-y-1">
                 <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'nav-link-active' : 'nav-link' }}">Staff</a>
+                <a href="{{ route('admin.shifts.index') }}" class="{{ request()->routeIs('admin.shifts.*') ? 'nav-link-active' : 'nav-link' }}">Attendance</a>
                 <a href="{{ route('admin.reports.sales') }}" class="{{ request()->routeIs('admin.reports.sales') ? 'nav-link-active' : 'nav-link' }}">Sales Report</a>
                 <a href="{{ route('admin.reports.low-stock') }}" class="{{ request()->routeIs('admin.reports.low-stock') ? 'nav-link-active' : 'nav-link' }}">Low Stock</a>
             </div>

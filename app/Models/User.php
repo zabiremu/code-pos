@@ -44,6 +44,12 @@ class User extends Authenticatable
         return $this->hasMany(Shift::class);
     }
 
+    /** The shift this user is currently clocked into, if any (clock_out is still null). */
+    public function activeShift(): ?Shift
+    {
+        return $this->shifts()->whereNull('clock_out')->latest('clock_in')->first();
+    }
+
     public function waiterOrders(): HasMany
     {
         return $this->hasMany(Order::class, 'waiter_id');

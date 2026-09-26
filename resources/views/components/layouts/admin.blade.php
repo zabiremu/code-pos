@@ -34,6 +34,7 @@
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0">
+            @php $activeShift = auth()->user()?->activeShift(); @endphp
             <header class="bg-white/80 backdrop-blur border-b border-zinc-100 px-4 py-3.5 flex items-center gap-3 sticky top-0 z-20">
                 <button type="button" x-on:click="sidebarOpen = true" class="md:hidden text-zinc-500 hover:text-primary-600 -ml-1 p-1">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -41,6 +42,51 @@
                     </svg>
                 </button>
                 <h1 class="text-xl font-semibold tracking-tight flex-1 truncate">{{ $title ?? 'Dashboard' }}</h1>
+
+                {{-- Shift clock-in/out widget - part of Employee Management.
+                     Every role sees this, not just admin/manager, since it's
+                     each person's own attendance. --}}
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" x-on:click="open = true" class="btn-secondary !px-3 !py-1.5 text-xs gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $activeShift ? 'bg-emerald-500' : 'bg-zinc-300' }} shrink-0"></span>
+                        {{ $activeShift ? 'Clocked in '.$activeShift->clock_in->format('g:i A') : 'Clock in' }}
+                    </button>
+
+                    <div x-show="open" x-cloak x-on:click.self="open = false"
+                         x-on:keydown.escape.window="open = false"
+                         class="fixed inset-0 z-40 bg-zinc-900/50 flex items-center justify-center p-4">
+                        <div class="card p-5 w-full max-w-xs" x-on:click.outside="open = false">
+                            @if ($activeShift)
+                                <h3 class="font-semibold mb-1">Clock out</h3>
+                                <p class="text-xs text-zinc-500 mb-3">
+                                    Clocked in {{ $activeShift->clock_in->diffForHumans() }},
+                                    opening till {{ number_format($activeShift->opening_till, 2) }}.
+                                </p>
+                                <form method="POST" action="{{ route('shifts.clock-out') }}">
+                                    @csrf
+                                    <label class="field-label">Closing till amount</label>
+                                    <input type="number" step="0.01" min="0" name="closing_till" required class="w-full input mb-3" autofocus>
+                                    <div class="flex gap-2">
+                                        <button type="button" x-on:click="open = false" class="btn-secondary flex-1">Cancel</button>
+                                        <button class="btn-primary flex-1">Clock out</button>
+                                    </div>
+                                </form>
+                            @else
+                                <h3 class="font-semibold mb-1">Clock in</h3>
+                                <p class="text-xs text-zinc-500 mb-3">Enter the cash amount in the till at the start of your shift.</p>
+                                <form method="POST" action="{{ route('shifts.clock-in') }}">
+                                    @csrf
+                                    <label class="field-label">Opening till amount</label>
+                                    <input type="number" step="0.01" min="0" value="0" name="opening_till" required class="w-full input mb-3" autofocus>
+                                    <div class="flex gap-2">
+                                        <button type="button" x-on:click="open = false" class="btn-secondary flex-1">Cancel</button>
+                                        <button class="btn-primary flex-1">Clock in</button>
+                                    </div>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Profile dropdown: avatar + name, opens a menu for profile/
                      password updates and logout. Closes on an outside click
