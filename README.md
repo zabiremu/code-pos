@@ -1,4 +1,4 @@
-# POS (CodeCanyon Edition)
+# ShopPulse POS (CodeCanyon Edition)
 
 A Laravel-based, general-purpose Point-of-Sale system for retail and small
 businesses, targeting submission to Envato CodeCanyon.

@@ -1,7 +1,7 @@
 {
-    "name": "zabiremu/pos",
+    "name": "zabiremu/shoppulse-pos",
     "type": "project",
-    "description": "Laravel point-of-sale system — product catalog, sales, billing, stock, and staff management.",
+    "description": "ShopPulse POS — Laravel point-of-sale system — product catalog, sales, billing, stock, and staff management.",
     "keywords": ["laravel", "pos", "point-of-sale", "retail"],
     "license": "proprietary",
     "require": {

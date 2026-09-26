@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+- **Branding**: product renamed to **ShopPulse POS** (default `APP_NAME`,
+  mail from-name, session/cache/DB fallback names, `composer.json` and
+  `package-lock.json` package names, README and documentation titles).
+
 ## 2.0.0
 
 **Converted from a restaurant/cafe POS into a generic retail POS.** The

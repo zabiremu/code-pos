@@ -21,5 +21,5 @@ return [
         ],
     ],
 
-    'prefix' => env('CACHE_PREFIX', 'restaurant_pos_cache'),
+    'prefix' => env('CACHE_PREFIX', 'shoppulse_pos_cache'),
 ];
