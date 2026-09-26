@@ -34,6 +34,15 @@ class TableController extends Controller
         return back()->with('status', 'Table created.');
     }
 
+    /** Print-friendly page: table's QR code (rendered client-side) plus the raw link, to tape to the table. */
+    public function qr(DiningTable $table): View
+    {
+        return view('admin.tables.qr', [
+            'table' => $table,
+            'url' => route('order.menu', $table),
+        ]);
+    }
+
     /** Waiter/host use — moves a table between free/occupied/reserved/billed. */
     public function updateStatus(Request $request, DiningTable $table): RedirectResponse
     {

@@ -1,5 +1,12 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import QRCode from 'qrcode';
+
+// Exposed for the table QR-print page (admin/tables/qr.blade.php) - kept as
+// a plain global instead of a second Vite entry point since this one bundle
+// is already shared across every screen (shared hosting has no Node to run
+// a second build step against).
+window.QRCode = QRCode;
 
 // Kitchen Display System real-time updates. Only wired up when Echo/Pusher
 // env vars are configured (see .env.example) — resources/views/kds/board.blade.php

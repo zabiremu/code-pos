@@ -14,6 +14,7 @@ use App\Http\Controllers\POS\OrderController;
 use App\Http\Controllers\POS\OrderItemController;
 use App\Http\Controllers\POS\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicOrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +28,17 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', fn () => redirect()->route('login'));
+
+// Customer QR ordering - public, no login. Reached only by scanning a
+// table's printed QR code (Admin\TableController@qr), never linked from
+// anywhere in the staff-facing app. Throttled against abuse/spam.
+Route::middleware(['throttle:60,1'])
+    ->prefix('order')
+    ->name('order.')
+    ->group(function () {
+        Route::get('/{table:qr_code}', [PublicOrderController::class, 'menu'])->name('menu');
+        Route::post('/{table:qr_code}', [PublicOrderController::class, 'store'])->name('store');
+    });
 
 Route::middleware(['auth'])->group(function () {
 
@@ -65,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/tables', [TableController::class, 'index'])->name('tables.index');
             Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
+            Route::get('/tables/{table}/qr', [TableController::class, 'qr'])->name('tables.qr');
             Route::patch('/tables/{table}/status', [TableController::class, 'updateStatus'])->name('tables.status');
             Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
 

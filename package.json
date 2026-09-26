@@ -16,6 +16,7 @@
     "dependencies": {
         "alpinejs": "^3.14.0",
         "laravel-echo": "^1.16.0",
-        "pusher-js": "^8.4.0"
+        "pusher-js": "^8.4.0",
+        "qrcode": "^1.5.4"
     }
 }

@@ -69,4 +69,20 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_repeated_failed_logins_are_rate_limited(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
+        }
+
+        // The 6th attempt is blocked by the throttle before credentials are
+        // even checked - even with the CORRECT password this time.
+        $response = $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
 }

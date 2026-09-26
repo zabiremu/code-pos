@@ -117,6 +117,15 @@ class InstallController extends Controller
         return view('install.finish');
     }
 
+    /**
+     * Writes the DB fields into .env. This handles two things a naive
+     * string-replace easily gets wrong: (1) preg_replace() treats "$1" etc.
+     * in the REPLACEMENT string as backreferences, so a password containing
+     * one would get silently mangled if passed to it directly - callback
+     * form sidesteps that; (2) a value with a space, "#", or quote would
+     * either get truncated by .env's parser or break the line entirely, so
+     * every value is quoted/escaped by envValue() rather than written raw.
+     */
     private function writeEnv(array $db): void
     {
         $envPath = base_path('.env');
@@ -131,11 +140,24 @@ class InstallController extends Controller
         ];
 
         foreach ($replacements as $key => $value) {
+            $line = $key.'='.$this->envValue((string) $value);
+
             $env = preg_match("/^{$key}=.*/m", $env)
-                ? preg_replace("/^{$key}=.*/m", "{$key}={$value}", $env)
-                : $env."\n{$key}={$value}";
+                ? preg_replace_callback("/^{$key}=.*/m", fn () => $line, $env)
+                : $env."\n".$line;
         }
 
         File::put($envPath, $env);
+    }
+
+    /** Quotes/escapes a value for a single .env line - see writeEnv()'s note above. */
+    private function envValue(string $value): string
+    {
+        $value = str_replace(["\r", "\n"], '', $value);
+        $escaped = str_replace(['\\', '"'], ['\\\\', '\\"'], $value);
+
+        return $value === '' || preg_match('/[\s"#]/', $value)
+            ? '"'.$escaped.'"'
+            : $escaped;
     }
 }

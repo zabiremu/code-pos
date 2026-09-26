@@ -44,10 +44,16 @@ project's Claude Docs plan.
 - **Web installer** — a five-step wizard (requirements check → Envato
   purchase-code verification → database setup → done) so a buyer never
   touches the command line; locks itself shut after first run
-- **Brand theme** — a red/white visual identity (see `tailwind.config.js`'s
-  `primary` color and `resources/css/app.css`'s shared component classes)
-  applied consistently across every screen, including the installer and
-  a themed pagination view
+- **QR-code customer self-ordering** — each table gets a unique, non-guessable
+  link (`Admin\TableController@qr`, printable from the Tables screen); a
+  customer scans it, browses the live menu, and submits a cart with no
+  login — it lands as pending items on that table's order exactly as if a
+  waiter had typed them in, so staff still review and send them to the
+  kitchen from the normal POS screen
+- **Brand theme** — a red/charcoal/white visual identity (see
+  `tailwind.config.js`'s `primary` color and `resources/css/app.css`'s
+  shared component classes) applied consistently across every screen,
+  including the installer and a themed pagination view
 
 ## Stack
 - Laravel 12.x on PHP 8.2+
@@ -117,13 +123,18 @@ php artisan test
 
 Tests run against an in-memory SQLite database (`phpunit.xml`), so they
 never touch your real `.env`/MySQL setup. Coverage includes: login (valid
-credentials, wrong password, deactivated account, guest redirects), every
-role-gated route group (a regression suite for the `role:` middleware —
-see the comment in `tests/Feature/RoleAccessTest.php` for the exact bug it
-guards against), the full order lifecycle (open → add item → send to
-kitchen → bump through KDS → bill → pay → close), `BillingService`'s tax/
-discount/service-charge math in isolation, the roles/admin seeder, and the
-dashboard's revenue/low-stock figures.
+credentials, wrong password, deactivated account, guest redirects, and the
+rate limiter locking out repeated bad attempts), every role-gated route
+group (a regression suite for the `role:` middleware — see the comment in
+`tests/Feature/RoleAccessTest.php` for the exact bug it guards against),
+the full order lifecycle (open → add item → send to kitchen → bump through
+KDS → bill → pay → close), the orders list's status-tab/search filtering,
+QR self-ordering (menu access by token — not by guessable numeric id —
+cart submission, and reusing an already-open tab instead of duplicating
+it), profile/password self-service, `BillingService`'s tax/discount/
+service-charge math in isolation, the `.env`-writing helper the installer
+uses (quoting/escaping — see Security below), the roles/admin seeder, and
+the dashboard's revenue/low-stock figures.
 
 This was written and statically checked (every file passes `php -l`, every
 route → controller → view → Blade-component reference was cross-checked,
@@ -131,6 +142,45 @@ every migration's foreign keys were verified against creation order) in an
 environment that couldn't run `composer install` itself — Packagist was
 network-blocked there. Run the suite once against your own `vendor/` and
 open an issue (or just fix it — it's your code now) if anything surfaces.
+
+## Security
+
+A quick account of what's actually been checked, not just claimed:
+
+- **Mass assignment** — every model uses an explicit `$fillable` whitelist
+  (no `$guarded = []` anywhere), and every controller builds its `create()`/
+  `update()` arrays from validated input plus fixed values, never from a raw
+  `$request->all()`
+- **Login brute-force protection** — `AuthenticatedSessionController` rate-
+  limits attempts per email+IP (5/minute) using Laravel's `RateLimiter`
+  facade, the same pattern Laravel's own docs recommend in place of the
+  deprecated `ThrottlesLogins` trait
+- **XSS** — every view uses Blade's auto-escaping `{{ }}`; there is no raw
+  `{!! !!}` output of user-supplied data anywhere in `resources/views/`
+- **CSRF** — on by default (Laravel's `VerifyCsrfToken` middleware, no
+  routes excluded from it) for every state-changing form
+- **Passwords** — hashed via `Hash::make()`/the `password` cast, never
+  stored or logged in plaintext; the seeded demo admin's password is
+  flagged for immediate change on the installer's finish screen
+- **`.env` writing** — the installer's database step used to build `.env`
+  lines with an unescaped `preg_replace()`, which (a) treats `$1`-style
+  substrings in a DB password as regex backreferences and silently mangles
+  them, and (b) would corrupt or truncate the file on a value containing a
+  space, `#`, or quote. Fixed to quote/escape every value and use
+  `preg_replace_callback()` instead — see `InstallController::envValue()`
+  and its test, `tests/Unit/InstallEnvValueTest.php`
+- **Purchase-code verification** — validates the code's format before
+  spending an API call, checks the sale against `ENVATO_ITEM_ID` so a code
+  for a different item is rejected, and never trusts a locally-computed
+  "valid" flag - it's a live check against Envato's own Author API
+- **`APP_DEBUG`** — `.env.example` ships with `APP_ENV=production` and
+  `APP_DEBUG=false` by default (it previously defaulted to `local`/`true`,
+  which leaks stack traces - file paths, query values, env vars - to
+  anyone who hits an error page if a buyer never changes it before going
+  live)
+- **QR ordering abuse** — the public menu/order routes are throttled
+  (`throttle:60,1`) and only ever reachable via a table's own random
+  32-character token, never linked from anywhere in the staff-facing app
 
 ## What's here
 
@@ -159,6 +209,13 @@ open an issue (or just fix it — it's your code now) if anything surfaces.
 - `app/Http/Controllers/Install/InstallController.php` +
   `app/Services/PurchaseCodeService.php` — the web installer wizard
   (requirements check → purchase code → database → migrate/seed → finish)
+- `app/Http/Controllers/PublicOrderController.php` +
+  `resources/views/public/order-menu.blade.php` — the QR self-ordering
+  menu; `Admin\TableController@qr` renders the printable QR code
+  (client-side, via the `qrcode` npm package - no new Composer dependency)
+- `app/Http/Controllers/ProfileController.php` +
+  `resources/views/profile/edit.blade.php` — self-service profile/password
+  editing, open to any authenticated role
 - `resources/css/app.css`, `tailwind.config.js` — the red/white brand theme:
   shared button/card/badge/input component classes and the `primary` color
   scale, used consistently by every view
@@ -190,6 +247,7 @@ to trace it themselves):
 | tailwindcss | MIT |
 | laravel-echo | MIT |
 | pusher-js | MIT |
+| qrcode | MIT |
 | vite | MIT |
 
 No third-party fonts, icon packs, images, or other bundled binary assets
@@ -198,6 +256,33 @@ inline SVG, not a licensed icon set.
 
 ## Still open before this is submission-ready
 
+Honestly, in priority order:
+
+- **Run the real test suite once, for real.** Every check in this repo's
+  history (including this pass's) was done by static analysis — `php -l`,
+  and custom scripts cross-checking route/view/component references and
+  Blade directive balance — because Packagist is network-blocked in the
+  environment this was built in, so `composer install` has never actually
+  been run here. It *has* been run successfully against a live cPanel
+  deploy previously (see commit history for the bugs that surfaced and got
+  fixed that way), but that was reactive, not `php artisan test` catching
+  things before they shipped. Run `composer install && php artisan test`
+  yourself before submitting - if anything surfaces, it's cheaper to find
+  now than after a reviewer or buyer does.
+- **CodeCanyon preview assets** (can't be produced from a hand-built repo -
+  need an actual running instance): a portrait feature-preview image, a
+  590×300 thumbnail, and a 5-8 minute walkthrough video. Screenshot, at
+  minimum: the dashboard, the orders list (all four status tabs), an open
+  order's item screen, the KDS board, a generated bill, the floor/tables
+  view, the QR ordering menu on an actual phone, the QR print page, the
+  installer's purchase-code step, and the profile/password screen. Real
+  screenshots of a real screen beat a mockup every time on this platform.
+- **Manual QA on the full order lifecycle end to end**, on a phone for the
+  QR ordering flow specifically (open a table's QR link, order, confirm it
+  shows up correctly as a pending item back on the POS side, send it to
+  the kitchen, bump it through KDS, bill it, pay it).
+- **Browser/device compatibility** — Envato's own review checklist asks
+  for this explicitly; hasn't been checked here at all.
 - Table drag-and-drop floor-plan editor (current admin view is a card-based
   list with live status colors, not a freeform drag canvas)
 - Multi-branch (deliberately deferred — see the build plan)
@@ -207,6 +292,12 @@ inline SVG, not a licensed icon set.
 - A live demo deployment with the test credentials shown on the listing page
   (there's a `.github/workflows/main.yml` FTP deploy workflow already set up
   for this — see repo secrets)
+- Envato's stated rejection criteria explicitly flag items "too similar to
+  existing catalog items" without a standout feature - QR self-ordering is
+  this repo's answer to that, but a second differentiator (e.g. a WhatsApp/
+  SMS order-ready notification, or a bKash/Nagad/SSLCommerz payment
+  integration for the BD market specifically) would meaningfully strengthen
+  the listing further
 
 ## License
 Proprietary — intended for commercial distribution via Envato CodeCanyon.

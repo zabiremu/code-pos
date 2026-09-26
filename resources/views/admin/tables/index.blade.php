@@ -24,10 +24,13 @@
         @foreach ($tables as $table)
             <div class="flex items-center justify-between px-5 py-3">
                 <span>{{ $table->label }} &middot; {{ $table->floor->name }} &middot; {{ $table->seats }} seats</span>
-                <form method="POST" action="{{ route('admin.tables.destroy', $table) }}" onsubmit="return confirm('Delete this table?')">
-                    @csrf @method('DELETE')
-                    <button class="btn-ghost">Delete</button>
-                </form>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('admin.tables.qr', $table) }}" class="btn-ghost">QR code</a>
+                    <form method="POST" action="{{ route('admin.tables.destroy', $table) }}" onsubmit="return confirm('Delete this table?')">
+                        @csrf @method('DELETE')
+                        <button class="btn-ghost">Delete</button>
+                    </form>
+                </div>
             </div>
         @endforeach
     </div>
