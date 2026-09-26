@@ -5,7 +5,7 @@
                 @php
                     $itemBadge = match ($item->status) {
                         'pending' => 'badge-gray',
-                        'sent', 'preparing' => 'badge-primary',
+                        'sent', 'preparing' => 'badge-blue',
                         'ready' => 'badge-yellow',
                         'served' => 'badge-green',
                         'cancelled' => 'badge-red',

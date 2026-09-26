@@ -8,7 +8,7 @@
             @php
                 $statusBadge = match ($order->status) {
                     'open' => 'badge-gray',
-                    'sent' => 'badge-primary',
+                    'sent' => 'badge-blue',
                     'served' => 'badge-green',
                     default => 'badge-gray',
                 };

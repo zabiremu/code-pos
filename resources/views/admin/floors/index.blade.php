@@ -14,7 +14,7 @@
                         @php
                             $color = match($table->status) {
                                 'free' => 'badge-green',
-                                'occupied' => 'badge-primary',
+                                'occupied' => 'badge-blue',
                                 'reserved' => 'badge-yellow',
                                 default => 'badge-gray',
                             };

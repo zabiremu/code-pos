@@ -10,8 +10,10 @@
     <div class="min-h-screen flex">
 
         {{-- Desktop sidebar: plain CSS (hidden md:flex), zero Alpine involvement
-             so it renders correctly on first paint with no flash. --}}
-        <aside class="hidden md:flex md:flex-col w-64 shrink-0 bg-primary-900 text-gray-100">
+             so it renders correctly on first paint with no flash. White, not
+             solid red - the brand color shows up in the logo mark, the
+             active-nav highlight, and the primary buttons instead. --}}
+        <aside class="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-gray-100">
             <x-layouts.sidebar-nav />
         </aside>
 
@@ -25,20 +27,20 @@
 
         <aside x-show="sidebarOpen" x-cloak
                x-on:click.outside="sidebarOpen = false"
-               class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-primary-900 text-gray-100 md:hidden"
+               class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white shadow-xl md:hidden"
                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
             <x-layouts.sidebar-nav />
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0">
-            <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-20">
+            <header class="bg-white/80 backdrop-blur border-b border-gray-100 px-4 py-3.5 flex items-center gap-3 sticky top-0 z-20">
                 <button type="button" x-on:click="sidebarOpen = true" class="md:hidden text-gray-500 hover:text-primary-600 -ml-1 p-1">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <h1 class="text-lg font-semibold flex-1 truncate">{{ $title ?? 'Dashboard' }}</h1>
+                <h1 class="text-xl font-semibold tracking-tight flex-1 truncate">{{ $title ?? 'Dashboard' }}</h1>
             </header>
 
             <main class="flex-1 p-4 md:p-6">
