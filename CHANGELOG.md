@@ -2,6 +2,12 @@
 
 ## 2.0.1
 
+- **Forgot password**: staff can reset their password by email
+  (`/forgot-password` → emailed link → `/reset-password`). Links expire after
+  60 minutes; deactivated accounts can't reset; the request form never reveals
+  whether an email exists. Needs working `MAIL_*` settings in `.env`.
+- **Login redesign**: new vampire-blood auth screens sharing one layout
+  (`components/layouts/auth.blade.php`).
 - **Branding**: product renamed to **ShopPulse POS** (default `APP_NAME`,
   mail from-name, session/cache/DB fallback names, `composer.json` and
   `package-lock.json` package names, README and documentation titles).
