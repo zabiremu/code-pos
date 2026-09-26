@@ -13,6 +13,7 @@ use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\OrderController;
 use App\Http\Controllers\POS\OrderItemController;
 use App\Http\Controllers\POS\PaymentController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('login'));
 
 Route::middleware(['auth'])->group(function () {
+
+    // Self-service profile/password editing - any authenticated role, not
+    // gated behind admin|manager like Admin\StaffController is.
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+        Route::put('/', [ProfileController::class, 'update'])->name('update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
+    });
 
     Route::middleware(['role:admin|manager'])
         ->prefix('admin')
