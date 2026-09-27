@@ -18,11 +18,15 @@
             </div>
             <div>
                 <label class="field-label">Database name</label>
-                <input type="text" name="db_database" value="{{ old('db_database') }}" required class="w-full input">
+                <input type="text" name="db_database" value="{{ old('db_database') }}" required maxlength="64"
+                       pattern="[A-Za-z0-9_]+" title="{{ \App\Http\Controllers\Install\InstallController::NAME_HINT }}" class="w-full input">
+                <p class="text-xs text-zinc-500 mt-1">{{ \App\Http\Controllers\Install\InstallController::NAME_HINT }}</p>
             </div>
             <div>
                 <label class="field-label">Username</label>
-                <input type="text" name="db_username" value="{{ old('db_username') }}" required class="w-full input">
+                <input type="text" name="db_username" value="{{ old('db_username') }}" required maxlength="64"
+                       pattern="[A-Za-z0-9_]+" title="{{ \App\Http\Controllers\Install\InstallController::NAME_HINT }}" class="w-full input">
+                <p class="text-xs text-zinc-500 mt-1">{{ \App\Http\Controllers\Install\InstallController::NAME_HINT }}</p>
             </div>
             <div>
                 <label class="field-label">Password</label>

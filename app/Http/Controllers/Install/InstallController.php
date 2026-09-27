@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The web-based installer Envato requires in place of manual .sql import +
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\File;
  */
 class InstallController extends Controller
 {
+    public const NAME_HINT = 'Use only letters, numbers and underscores (e.g. myuser_pos). Hyphens and spaces aren\'t allowed.';
+
     private const REQUIRED_EXTENSIONS = [
         'bcmath', 'ctype', 'fileinfo', 'json', 'mbstring', 'openssl', 'pdo', 'tokenizer', 'xml',
     ];
@@ -97,11 +100,17 @@ class InstallController extends Controller
         $data = $request->validate([
             'db_host' => ['required', 'string'],
             'db_port' => ['required', 'integer'],
-            'db_database' => ['required', 'string'],
-            'db_username' => ['required', 'string'],
+            'db_database' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_]+$/'],
+            'db_username' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_]+$/'],
             'db_password' => ['nullable', 'string'],
+        ], [
+            'db_database.regex' => self::NAME_HINT,
+            'db_username.regex' => self::NAME_HINT,
         ]);
 
+        // Forget any connection made with earlier settings, or the test below
+        // would silently reuse it instead of trying the new credentials.
+        DB::purge('mysql');
         config([
             'database.default' => 'mysql',
             'database.connections.mysql.host' => $data['db_host'],
@@ -111,10 +120,13 @@ class InstallController extends Controller
             'database.connections.mysql.password' => $data['db_password'] ?? '',
         ]);
 
+        // .env is only written once this succeeds, so a failed attempt leaves it untouched.
         try {
             DB::connection('mysql')->getPdo();
         } catch (\Throwable $e) {
-            return back()->withInput()->withErrors(['db_host' => 'Could not connect: '.$e->getMessage()]);
+            return back()
+                ->withInput($request->except('db_password'))
+                ->withErrors($this->connectionError($e, $data));
         }
 
         $this->writeEnv([
@@ -137,7 +149,7 @@ class InstallController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->withInput()->withErrors([
+            return back()->withInput($request->except('db_password'))->withErrors([
                 'db_host' => 'Connected, but setting up the tables failed: '.$e->getMessage()
                     .' Check that the database is empty and this user can create tables, then try again.',
             ]);
@@ -167,6 +179,42 @@ class InstallController extends Controller
     }
 
     /**
+     * Turns a failed MySQL connection into something a buyer on cPanel can act
+     * on. The driver error code is in getCode() or, depending on the PDO
+     * driver, only inside the message ("SQLSTATE[HY000] [1045] ...").
+     *
+     * @param  array<string, mixed>  $db
+     * @return array<string, string> field => message
+     */
+    private function connectionError(\Throwable $e, array $db): array
+    {
+        $message = $e->getMessage();
+        $code = is_numeric($e->getCode()) ? (int) $e->getCode() : 0;
+        if (preg_match('/\[(\d{4})\]/', $message, $m)) {
+            $code = (int) $m[1];
+        }
+
+        return match (true) {
+            $code === 1049 => ['db_database' => "Database '{$db['db_database']}' doesn't exist. Create it first in cPanel > MySQL Databases (or phpMyAdmin), then try again."],
+            $code === 1045 => ['db_username' => "Username or password is wrong, or this user isn't added to the database (cPanel > MySQL Databases > Add User To Database, ALL PRIVILEGES)."],
+            in_array($code, [2002, 2003, 2005], true) || stripos($message, 'connection refused') !== false => [
+                'db_host' => "Can't reach the MySQL server at {$db['db_host']}:{$db['db_port']}. On cPanel the host is usually 'localhost'.",
+            ],
+            default => $this->unknownConnectionError($e, $db),
+        };
+    }
+
+    /** @param  array<string, mixed>  $db */
+    private function unknownConnectionError(\Throwable $e, array $db): array
+    {
+        Log::warning('Installer could not connect to MySQL: '.$e->getMessage(), [
+            'host' => $db['db_host'], 'port' => $db['db_port'], 'database' => $db['db_database'], 'username' => $db['db_username'],
+        ]);
+
+        return ['db_host' => 'Could not connect to the database with these details. Double-check them, or ask your host for the correct MySQL host and port. The exact error was saved to storage/logs.'];
+    }
+
+    /**
      * Writes KEY=value pairs into .env. This handles two things a naive
      * string-replace easily gets wrong: (1) preg_replace() treats "$1" etc.
      * in the REPLACEMENT string as backreferences, so a password containing
@@ -190,7 +238,8 @@ class InstallController extends Controller
                 : rtrim($env, "\r\n")."\n".$line."\n";
         }
 
-        File::put($envPath, $env);
+        // Temp file + rename: a failed write can't leave a half-written .env behind.
+        File::replace($envPath, $env);
     }
 
     /** Quotes/escapes a value for a single .env line - see writeEnv()'s note above. */

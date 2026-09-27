@@ -51,6 +51,7 @@ class InstallerStepsTest extends TestCase
     /** Pretends the MySQL connection works and each Artisan command returns $migrateResult. */
     private function fakeDatabase(\Closure|int $migrateResult = 0): void
     {
+        DB::shouldReceive('purge')->with('mysql');
         DB::shouldReceive('connection')->with('mysql')->andReturn(Mockery::mock(['getPdo' => true]));
 
         $call = Artisan::shouldReceive('call')->with('migrate', ['--force' => true]);
