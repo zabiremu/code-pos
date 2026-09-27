@@ -127,6 +127,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
                 Route::post('/settings/test-email', [SettingsController::class, 'sendTestEmail'])
                     ->middleware('throttle:5,1')->name('settings.test-email');
+                Route::post('/settings/license/deactivate', [SettingsController::class, 'deactivateLicense'])
+                    ->middleware('throttle:5,1')->name('settings.license.deactivate');
             });
         });
 

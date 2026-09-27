@@ -2,10 +2,10 @@
     <div class="card p-8">
         <h2 class="text-lg font-semibold mb-2">Verify your purchase</h2>
         <p class="text-sm text-zinc-600 mb-4">
-            Find your purchase code under Downloads on CodeCanyon. Your Envato
-            Personal Token is generated at
-            <span class="font-mono">build.envato.com</span> with the "view your
-            purchased items" permission.
+            Enter the purchase code from your CodeCanyon
+            <span class="font-medium">Downloads</span> page
+            (Download &rarr; &ldquo;License certificate &amp; purchase code&rdquo;).
+            It looks like <span class="font-mono text-xs">a1b2c3d4-e5f6-7890-abcd-ef1234567890</span>.
         </p>
 
         @if ($errors->any())
@@ -15,13 +15,15 @@
         <form method="POST" action="{{ route('install.purchase-code.verify') }}" class="space-y-3">
             @csrf
             <div>
-                <label class="field-label">Purchase code</label>
-                <input type="text" name="purchase_code" required class="w-full input">
+                <label class="field-label" for="purchase_code">Purchase code</label>
+                <input id="purchase_code" type="text" name="purchase_code" value="{{ old('purchase_code') }}"
+                       required autocomplete="off" spellcheck="false" class="w-full input font-mono">
             </div>
-            <div>
-                <label class="field-label">Envato Personal Token</label>
-                <input type="text" name="envato_token" required class="w-full input">
-            </div>
+            <p class="text-xs text-zinc-500">
+                One Regular License covers one live domain
+                (<span class="font-mono">{{ request()->getHost() }}</span>).
+                Installs on localhost or a local network don&rsquo;t use it up.
+            </p>
             <button class="w-full btn-primary">Verify &amp; continue</button>
         </form>
     </div>

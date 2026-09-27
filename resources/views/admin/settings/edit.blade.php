@@ -101,4 +101,38 @@
             @enderror
         </div>
     </div>
+
+    {{-- License: shows what the installer verified; lets the buyer free the code to move domains. --}}
+    <div class="card mt-6" style="max-width:36rem">
+        <div class="card-body">
+            <h2 class="text-base font-semibold">License</h2>
+            @if ($license)
+                <dl class="mt-3 grid grid-cols-3 gap-y-1.5 text-sm">
+                    <dt class="text-zinc-500">Purchase code</dt>
+                    <dd class="col-span-2 font-mono">••••••••-••••-••••-••••-{{ substr($license['purchase_code'], -12) }}</dd>
+                    <dt class="text-zinc-500">Domain</dt>
+                    <dd class="col-span-2">{{ $license['domain'] }}</dd>
+                    @if (! empty($license['license']))
+                        <dt class="text-zinc-500">Type</dt>
+                        <dd class="col-span-2">{{ $license['license'] }}</dd>
+                    @endif
+                    @if (! empty($license['supported_until']))
+                        <dt class="text-zinc-500">Support until</dt>
+                        <dd class="col-span-2">{{ \Illuminate\Support\Carbon::parse($license['supported_until'])->toFormattedDateString() }}</dd>
+                    @endif
+                </dl>
+                <form method="POST" action="{{ route('admin.settings.license.deactivate') }}" class="mt-4"
+                      x-data x-on:submit="if (! confirm('Deactivate the license on this domain? Do this before moving to a new domain.')) $event.preventDefault()">
+                    @csrf
+                    <button class="btn-secondary">Deactivate on this domain</button>
+                </form>
+                <p class="text-xs text-zinc-500 mt-2">Moving to a new domain? Deactivate here first, then run the installer on the new site.</p>
+            @else
+                <p class="text-sm text-zinc-500 mt-1">No license is recorded on this install.</p>
+            @endif
+            @error('license')
+                <p class="text-xs text-red-600 mt-2">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
 </x-layouts.admin>

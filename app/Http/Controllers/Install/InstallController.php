@@ -51,18 +51,17 @@ class InstallController extends Controller
     public function verifyPurchaseCode(Request $request, PurchaseCodeService $service): RedirectResponse
     {
         $data = $request->validate([
-            'purchase_code' => ['required', 'string'],
-            'envato_token' => ['required', 'string'],
+            'purchase_code' => ['required', 'string', 'max:64'],
         ]);
 
-        $result = $service->verify($data['purchase_code'], $data['envato_token']);
+        $result = $service->verify($data['purchase_code'], $request->getHost());
 
         if (! $result['valid']) {
-            return back()->withErrors(['purchase_code' => $result['message']]);
+            return back()->withInput()->withErrors(['purchase_code' => $result['message']]);
         }
 
+        $service->store($data['purchase_code'], $request->getHost(), $result);
         $request->session()->put('install.purchase_verified', true);
-        $request->session()->put('install.envato_token', $data['envato_token']);
 
         return redirect()->route('install.database');
     }

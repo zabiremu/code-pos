@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Setting;
+use App\Services\PurchaseCodeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ use Throwable;
  */
 class SettingsController extends Controller
 {
-    public function edit(): View|RedirectResponse
+    public function edit(PurchaseCodeService $licenses): View|RedirectResponse
     {
         if (! Schema::hasTable('settings')) {
             return redirect()->route('admin.dashboard')
@@ -52,6 +53,7 @@ class SettingsController extends Controller
             ],
             'hasMailPassword' => filled(Setting::get('mail_password')),
             'timezones' => timezone_identifiers_list(),
+            'license' => $licenses->current(),
         ]);
     }
 
@@ -128,5 +130,29 @@ class SettingsController extends Controller
         }
 
         return back()->with('status', 'Test email sent to '.$data['test_to'].'. Check the inbox (and spam).');
+    }
+
+    /**
+     * Frees this install's purchase code on the license server so the buyer
+     * can activate it on a new domain (e.g. moving hosts). The app keeps
+     * working here; only the activation record moves.
+     */
+    public function deactivateLicense(Request $request, PurchaseCodeService $licenses): RedirectResponse
+    {
+        $license = $licenses->current();
+
+        if (! $license) {
+            return back()->withErrors(['license' => 'No license is recorded on this install.']);
+        }
+
+        $result = $licenses->deactivate($license['purchase_code'], $request->getHost());
+
+        if (! $result['valid']) {
+            return back()->withErrors(['license' => $result['message']]);
+        }
+
+        $licenses->forget();
+
+        return back()->with('status', 'License deactivated. You can now use your purchase code on another domain.');
     }
 }

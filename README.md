@@ -76,8 +76,8 @@ if you change anything under `resources/`.
 
 That's the whole thing — `bootstrap/app.php` already wires up the `role` and
 `redirect.if.installed` middleware aliases and loads `routes/web.php`,
-`routes/auth.php`, and `routes/install.php`. `config/services.php` already
-has the `envato.item_id` entry `PurchaseCodeService` reads.
+`routes/auth.php`, and `routes/install.php`. `config/license.php` points
+`PurchaseCodeService` at the license server (see `license-server/`).
 
 For the web installer (`/install`) instead of the CLI migrate above: it's
 locked shut once `storage/installed.lock` exists, so it only runs on a truly
@@ -163,10 +163,12 @@ A quick account of what's actually been checked, not just claimed:
   space, `#`, or quote. Fixed to quote/escape every value and use
   `preg_replace_callback()` instead — see `InstallController::envValue()`
   and its test, `tests/Unit/InstallEnvValueTest.php`
-- **Purchase-code verification** — validates the code's format before
-  spending an API call, checks the sale against `ENVATO_ITEM_ID` so a code
-  for a different item is rejected, and never trusts a locally-computed
-  "valid" flag - it's a live check against Envato's own Author API
+- **Purchase-code verification** — the installer sends only the purchase
+  code and the site's domain to the author's license server
+  (`config/license.php`). That server holds the author's Envato token,
+  checks the sale and item ID against Envato's Author API, and allows one
+  live domain per code (localhost/LAN installs are free). The buyer never
+  needs an Envato token, and no token ships with the item
 - **`APP_DEBUG`** — `.env.example` ships with `APP_ENV=production` and
   `APP_DEBUG=false` by default (it previously defaulted to `local`/`true`,
   which leaks stack traces - file paths, query values, env vars - to
