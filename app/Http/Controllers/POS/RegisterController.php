@@ -115,6 +115,7 @@ class RegisterController extends Controller
                     'product_id' => $product->id,
                     'quantity' => $qty,
                     'unit_price' => $product->base_price, // server price, never the browser's
+                    'unit_cost' => $product->purchase_price, // cost at the moment of sale, for profit reports
                 ]);
                 $this->stock->deductForSaleItem($item);
             }

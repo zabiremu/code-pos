@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\GrnController;
 use App\Http\Controllers\Admin\GrnReturnController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\ExpenseCategoryController;
+use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\CustomerReceiptController;
 use App\Http\Controllers\Admin\SaleReturnController;
@@ -101,6 +103,12 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
             Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
+            Route::get('/reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+            Route::get('/reports/stock-value', [ReportController::class, 'stockValue'])->name('reports.stock-value');
+            Route::get('/reports/purchases', [ReportController::class, 'purchases'])->name('reports.purchases');
+
+            Route::resource('expenses', ExpenseController::class)->except('show');
+            Route::resource('expense-categories', ExpenseCategoryController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['expense-categories' => 'expenseCategory']);
 
             // Holds the SMTP password, so admins only - not managers.
             Route::middleware('role:admin')->group(function () {

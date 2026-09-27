@@ -31,6 +31,7 @@ class SaleItemController extends Controller
             'product_id' => $product->id,
             'quantity' => $data['quantity'],
             'unit_price' => $product->base_price,
+            'unit_cost' => $product->purchase_price,
             'notes' => $data['notes'] ?? null,
         ]);
 

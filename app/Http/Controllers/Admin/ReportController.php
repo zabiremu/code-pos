@@ -3,44 +3,53 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Bill;
 use App\Models\Product;
-use App\Models\SaleItem;
+use App\Models\Warehouse;
+use App\Services\ReportService;
+use App\Support\DateRange;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class ReportController extends Controller
 {
-    /** Daily sales + top-selling products, for a given date (defaults to today). */
+    public function __construct(private ReportService $reports) {}
+
     public function sales(Request $request): View
     {
-        $date = $request->query('date') ? Carbon::parse($request->query('date')) : today();
+        $range = DateRange::fromRequest($request);
 
-        $bills = Bill::whereDate('created_at', $date)->where('status', 'paid')->get();
+        return view('admin.reports.sales', ['range' => $range] + $this->reports->sales($range));
+    }
 
-        $topItems = SaleItem::query()
-            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereDate('sale_items.created_at', $date)
-            ->selectRaw('product_id, SUM(quantity) as qty')
-            ->groupBy('product_id')
-            ->orderByDesc('qty')
-            ->with('product')
-            ->limit(10)
-            ->get();
+    public function profitLoss(Request $request): View
+    {
+        $range = DateRange::fromRequest($request);
 
-        return view('admin.reports.sales', [
-            'date' => $date,
-            'totalSales' => $bills->sum('grand_total'),
-            'billCount' => $bills->count(),
-            'topItems' => $topItems,
-        ]);
+        return view('admin.reports.profit-loss', ['range' => $range] + $this->reports->profitLoss($range));
+    }
+
+    public function stockValue(Request $request): View
+    {
+        $warehouseId = $request->integer('warehouse') ?: null;
+
+        return view('admin.reports.stock-value', [
+            'warehouseId' => $warehouseId,
+            'warehouses' => Warehouse::orderByDesc('is_default')->orderBy('name')->get(['id', 'name']),
+        ] + $this->reports->stockValue($warehouseId));
+    }
+
+    public function purchases(Request $request): View
+    {
+        $range = DateRange::fromRequest($request);
+
+        return view('admin.reports.purchases', ['range' => $range] + $this->reports->purchases($range));
     }
 
     public function lowStock(): View
     {
-        $products = Product::where('track_stock', true)
+        $products = Product::with('unit:id,short_name')->where('track_stock', true)
             ->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
+            ->orderBy('stock_quantity')
             ->get();
 
         return view('admin.reports.low-stock', compact('products'));

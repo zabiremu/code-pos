@@ -2,6 +2,17 @@
 
 ## 2.0.1
 
+- **Expenses** with categories (Rent, Salaries, utilities... editable), a
+  period/category filter and a by-category breakdown.
+- **Reports** section with period presets (today ... this year, custom) and
+  print: Sales (by day chart, best sellers with profit, money taken by
+  method, by cashier, credit given), Profit & loss (net sales, cost of goods
+  at the price paid on the day of sale, expenses, stock write-offs, net
+  profit and margins), Purchases (by supplier), Stock value (at cost and at
+  sale price, by warehouse/category) and Low stock.
+- Sale lines now record their cost at the moment of sale (`unit_cost`);
+  existing lines are back-filled with today's purchase price.
+  Run `php artisan migrate`.
 - **Product photos**: upload a JPG/PNG/WebP (up to 4 MB) on the product
   form, with preview, replace and remove. With PHP GD available, photos are
   shrunk to 800px WebP. Stored in `public/uploads/products` (no

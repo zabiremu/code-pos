@@ -120,9 +120,18 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke-linecap="round"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
                     Adjustments
                 </a>
-                <a href="{{ route('admin.reports.low-stock') }}" class="{{ $link('admin.reports.low-stock') }}" {{ $current('admin.reports.low-stock') }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 4 2.5 20h19L12 4Z" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5h.01" stroke-linecap="round"/></svg>
-                    Low stock
+            </div>
+        </div>
+        <div>
+            <p class="px-3 mb-2 text-xs font-medium text-bone/40">Reports</p>
+            <div class="space-y-1">
+                <a href="{{ route('admin.reports.sales') }}" class="{{ $link('admin.reports.*') }}" {{ $current('admin.reports.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-linecap="round"/></svg>
+                    Reports
+                </a>
+                <a href="{{ route('admin.expenses.index') }}" class="{{ $link('admin.expense*') }}" {{ $current('admin.expense*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3S9.5 10 12 10.5s4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3" stroke-linecap="round"/></svg>
+                    Expenses
                 </a>
             </div>
         </div>
@@ -136,10 +145,6 @@
                 <a href="{{ route('admin.shifts.index') }}" class="{{ $link('admin.shifts.*') }}" {{ $current('admin.shifts.*') }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Attendance
-                </a>
-                <a href="{{ route('admin.reports.sales') }}" class="{{ $link('admin.reports.sales') }}" {{ $current('admin.reports.sales') }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-linecap="round"/></svg>
-                    Sales report
                 </a>
                 @if ($user?->hasRole('admin'))
                     <a href="{{ route('admin.settings.edit') }}" class="{{ $link('admin.settings.*') }}" {{ $current('admin.settings.*') }}>
