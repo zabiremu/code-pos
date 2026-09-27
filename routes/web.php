@@ -7,6 +7,12 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\GrnController;
+use App\Http\Controllers\Admin\GrnReturnController;
+use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\UnitController;
+use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\PaymentController;
 use App\Http\Controllers\POS\SaleController;
@@ -57,11 +63,16 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-            Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-            Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
-            Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-            Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-            Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+            Route::resource('products', ProductController::class)->except('show');
+            Route::resource('units', UnitController::class)->except('show');
+            Route::resource('brands', BrandController::class)->except('show');
+            Route::resource('warehouses', WarehouseController::class)->except('show');
+
+            // Purchasing: purchase orders -> goods received (GRN) -> returns to supplier.
+            Route::resource('purchases', PurchaseController::class);
+            Route::patch('purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])->name('purchases.cancel');
+            Route::resource('grns', GrnController::class);
+            Route::resource('grn-returns', GrnReturnController::class)->parameters(['grn-returns' => 'grnReturn']);
 
             Route::resource('suppliers', SupplierController::class)->except('show');
 

@@ -64,6 +64,10 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $name = $supplier->displayName();
+
+        if ($supplier->purchases()->exists() || $supplier->grns()->exists()) {
+            return back()->withErrors(['supplier' => "\"{$name}\" has purchases or GRNs on record, so it can't be deleted. Mark it inactive instead."]);
+        }
         $supplier->delete();
 
         return redirect()->route('admin.suppliers.index')->with('status', 'Supplier "'.$name.'" deleted.');

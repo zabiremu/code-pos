@@ -2,6 +2,14 @@
 
 ## 2.0.1
 
+- **Inventory & purchasing**: Units, Brands and Warehouses (CRUD); products
+  gain unit, brand, purchase price, sale price and regular price (MRP), plus
+  opening stock into a chosen warehouse. Stock is now tracked per warehouse
+  (sales deduct from the default one). Purchase orders -> Goods Received
+  Notes (GRN, adds stock, updates cost, moves the PO to partly/fully
+  received) -> Returns to supplier (removes stock, tracked per GRN line).
+  Editing or deleting a GRN/return reverses its stock first. Run
+  `php artisan migrate` (existing stock moves into "Main Warehouse").
 - **Suppliers** (Catalog > Suppliers, admin + manager): add, edit, search,
   filter by active/inactive and delete suppliers (contact, company, phone,
   email, VAT/BIN/TIN, address, notes). Run `php artisan migrate`.
