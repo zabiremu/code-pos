@@ -11,11 +11,21 @@ class Sale extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cashier_id', 'status', 'notes'];
+    protected $fillable = ['cashier_id', 'customer_id', 'status', 'notes'];
 
     public function cashier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cashier_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class);
     }
 
     public function items(): HasMany

@@ -10,7 +10,7 @@ class SaleItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sale_id', 'product_id', 'quantity', 'unit_price', 'notes'];
+    protected $fillable = ['sale_id', 'product_id', 'quantity', 'returned_quantity', 'unit_price', 'notes'];
 
     protected $casts = ['unit_price' => 'decimal:2'];
 
@@ -22,6 +22,11 @@ class SaleItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function returnableQuantity(): int
+    {
+        return max((int) $this->quantity - (int) $this->returned_quantity, 0);
     }
 
     public function lineTotal(): float

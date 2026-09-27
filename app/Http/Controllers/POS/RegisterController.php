@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Bill;
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Setting;
 use App\Services\BillingService;
 use App\Services\StockService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +59,22 @@ class RegisterController extends Controller
             'defaultTax' => (float) ($branch?->tax_rate ?? 0),
             'currency' => $branch?->currency,
             'methods' => self::METHODS,
+            'customers' => Customer::where('is_active', true)->orderBy('name')->get(['id', 'name', 'phone'])
+                ->map(fn (Customer $c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone])->values(),
         ]);
+    }
+
+    /** Quick-add from the register: just a name and (optionally) a phone number. */
+    public function storeCustomer(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:30', 'unique:customers,phone'],
+        ], ['phone.unique' => 'A customer with this phone number already exists - search for them instead.']);
+
+        $customer = Customer::create($data + ['is_active' => true]);
+
+        return response()->json(['id' => $customer->id, 'name' => $customer->name, 'phone' => $customer->phone], 201);
     }
 
     public function checkout(Request $request): RedirectResponse
@@ -67,18 +84,22 @@ class RegisterController extends Controller
             'items.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_available', true)],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:9999'],
             'discount' => ['nullable', 'numeric', 'min:0'],
-            'method' => ['required', Rule::in(array_keys(self::METHODS))],
+            'method' => ['required', Rule::in([...array_keys(self::METHODS), 'due'])],
+            'customer_id' => ['nullable', 'required_if:method,due', Rule::exists('customers', 'id')->where('is_active', true)],
             'tendered' => ['nullable', 'numeric', 'min:0'],
+            'paid_now' => ['nullable', 'numeric', 'min:0'],
             'reference' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:255'],
         ], [
             'items.required' => 'The cart is empty.',
+            'customer_id.required_if' => 'Choose a customer to sell on credit.',
             'items.*.product_id.exists' => 'One of the products is no longer available. Refresh the register.',
         ]);
 
         [$bill, $change] = DB::transaction(function () use ($data, $request) {
             $sale = Sale::create([
                 'cashier_id' => $request->user()->id,
+                'customer_id' => $data['customer_id'] ?? null,
                 'status' => 'open',
                 'notes' => $data['notes'] ?? null,
             ]);
@@ -101,18 +122,36 @@ class RegisterController extends Controller
             $total = (float) $bill->grand_total;
 
             $change = 0.0;
-            if ($data['method'] === 'cash') {
-                $tendered = (float) ($data['tendered'] ?? $total);
-                if ($tendered + 0.005 < $total) {
-                    throw ValidationException::withMessages(['tendered' => 'Cash received ('.number_format($tendered, 2).') is less than the total ('.number_format($total, 2).').']);
+            if ($data['method'] === 'due') {
+                // Pay later: whatever is paid now is taken in cash, the rest is owed.
+                $paidNow = round(min((float) ($data['paid_now'] ?? 0), $total), 2);
+                $customer = Customer::findOrFail($data['customer_id']);
+                if ($customer->credit_limit !== null) {
+                    // due() already includes this new, still-unpaid bill.
+                    $owedAfter = $customer->due() - $paidNow;
+                    if ($owedAfter > (float) $customer->credit_limit + 0.004) {
+                        throw ValidationException::withMessages(['paid_now' => "{$customer->name}'s credit limit is ".number_format((float) $customer->credit_limit, 2).'; this sale would take them to '.number_format($owedAfter, 2).'.']);
+                    }
                 }
-                $change = round($tendered - $total, 2);
-            }
-
-            if ($total > 0) {
-                $this->billing->recordPayment($bill, $data['method'], $total, $data['reference'] ?? null, $request->user()->id);
+                if ($paidNow > 0) {
+                    $this->billing->recordPayment($bill, 'cash', $paidNow, 'Part payment', $request->user()->id);
+                } else {
+                    $bill->refreshStatus();
+                }
             } else {
-                $bill->update(['status' => 'paid']);
+                if ($data['method'] === 'cash') {
+                    $tendered = (float) ($data['tendered'] ?? $total);
+                    if ($tendered + 0.005 < $total) {
+                        throw ValidationException::withMessages(['tendered' => 'Cash received ('.number_format($tendered, 2).') is less than the total ('.number_format($total, 2).').']);
+                    }
+                    $change = round($tendered - $total, 2);
+                }
+
+                if ($total > 0) {
+                    $this->billing->recordPayment($bill, $data['method'], $total, $data['reference'] ?? null, $request->user()->id);
+                } else {
+                    $bill->update(['status' => 'paid']);
+                }
             }
 
             $sale->update(['status' => 'closed']);
@@ -125,7 +164,7 @@ class RegisterController extends Controller
 
     public function receipt(Bill $bill): View
     {
-        $bill->load(['sale.items.product.unit', 'sale.cashier:id,name', 'payments']);
+        $bill->load(['sale.items.product.unit', 'sale.cashier:id,name', 'sale.customer', 'payments', 'saleReturns']);
 
         return view('pos.register.receipt', [
             'bill' => $bill,
@@ -138,6 +177,7 @@ class RegisterController extends Controller
                 'footer' => Setting::get('receipt_footer'),
             ],
             'methods' => self::METHODS,
+            'customerDue' => $bill->sale->customer?->due(),
         ]);
     }
 }

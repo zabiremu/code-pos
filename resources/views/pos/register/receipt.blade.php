@@ -15,7 +15,12 @@
                 <div class="rounded-2xl sidebar-surface text-bone p-6">
                     <p class="text-sm text-bone/70">Sale complete</p>
                     <p class="font-display text-4xl mt-2 tabular-nums">{{ $currency ? $currency.' ' : '' }}{{ $money($bill->grand_total) }}</p>
-                    <p class="text-sm text-bone/70 mt-1">Paid by {{ $methods[$payment?->method] ?? 'cash' }}</p>
+                    @php $owedNow = $bill->balanceDue(); @endphp
+                    @if ($owedNow > 0)
+                        <p class="text-sm text-bone/70 mt-1">{{ $money($bill->amountPaid()) }} paid now &middot; <span class="text-white font-medium">{{ $money($owedNow) }} on {{ $bill->sale->customer?->name }}'s account</span></p>
+                    @else
+                        <p class="text-sm text-bone/70 mt-1">Paid by {{ $methods[$payment?->method] ?? 'cash' }}{{ $bill->sale->customer ? ' - '.$bill->sale->customer->name : '' }}</p>
+                    @endif
                     @if ($change > 0)
                         <div class="mt-5 rounded-xl bg-white/10 px-4 py-3 flex items-baseline justify-between">
                             <span class="text-sm">Change to give</span>
@@ -30,6 +35,9 @@
                     Print receipt <kbd class="text-[11px] font-normal text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5">P</kbd>
                 </button>
                 <a href="{{ route('pos.sales.index') }}" class="block text-center text-sm text-zinc-500 hover:text-primary-600">View recent sales</a>
+                @if (auth()->user()->hasAnyRole(['admin', 'manager']))
+                    <a href="{{ route('admin.sale-returns.create', ['bill' => $bill->id]) }}" class="block text-center text-sm text-zinc-500 hover:text-primary-600">Return items from this sale</a>
+                @endif
             </section>
 
             {{-- The printable receipt --}}
@@ -43,6 +51,7 @@
                 <div class="border-t border-dashed border-zinc-400 my-2"></div>
                 <div class="flex justify-between"><span>Receipt #{{ $bill->id }}</span><span>{{ $bill->created_at->format('d/m/Y H:i') }}</span></div>
                 <div>Cashier: {{ $bill->sale->cashier?->name }}</div>
+                @if ($bill->sale->customer)<div>Customer: {{ $bill->sale->customer->label() }}</div>@endif
                 <div class="border-t border-dashed border-zinc-400 my-2"></div>
 
                 @foreach ($bill->sale->items as $item)
@@ -56,7 +65,14 @@
                 @if ($bill->discount_total > 0)<div class="flex justify-between"><span>Discount</span><span>-{{ $money($bill->discount_total) }}</span></div>@endif
                 <div class="flex justify-between font-bold text-[14px] mt-1"><span>TOTAL{{ $currency ? ' '.$currency : '' }}</span><span>{{ $money($bill->grand_total) }}</span></div>
                 <div class="border-t border-dashed border-zinc-400 my-2"></div>
-                <div class="flex justify-between"><span>{{ $methods[$payment?->method] ?? 'Cash' }}</span><span>{{ $money($bill->grand_total + $change) }}</span></div>
+                @php $paidNow = $bill->amountPaid(); $owed = $bill->balanceDue(); @endphp
+                @if ($payment)
+                    <div class="flex justify-between"><span>{{ $methods[$payment->method] ?? 'Cash' }}</span><span>{{ $money($paidNow + $change) }}</span></div>
+                @endif
+                @if ($owed > 0)
+                    <div class="flex justify-between font-bold"><span>DUE (on account)</span><span>{{ $money($owed) }}</span></div>
+                    @if ($customerDue !== null)<div class="flex justify-between"><span>Total owed now</span><span>{{ $money($customerDue) }}</span></div>@endif
+                @endif
                 @if ($change > 0)<div class="flex justify-between"><span>Change</span><span>{{ $money($change) }}</span></div>@endif
                 @if ($payment?->reference)<div>Ref: {{ $payment->reference }}</div>@endif
 

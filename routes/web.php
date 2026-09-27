@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\GrnController;
 use App\Http\Controllers\Admin\GrnReturnController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomerReceiptController;
+use App\Http\Controllers\Admin\SaleReturnController;
 use App\Http\Controllers\Admin\StockAdjustmentController;
 use App\Http\Controllers\Admin\StockTransferController;
 use App\Http\Controllers\Admin\SupplierPaymentController;
@@ -81,6 +84,10 @@ Route::middleware(['auth'])->group(function () {
             Route::resource('suppliers', SupplierController::class);
             Route::resource('supplier-payments', SupplierPaymentController::class)->except('show')->parameters(['supplier-payments' => 'supplierPayment']);
 
+            Route::resource('customers', CustomerController::class);
+            Route::resource('customer-receipts', CustomerReceiptController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->parameters(['customer-receipts' => 'customerReceipt']);
+            Route::resource('sale-returns', SaleReturnController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->parameters(['sale-returns' => 'saleReturn']);
+
             Route::resource('stock-transfers', StockTransferController::class)->parameters(['stock-transfers' => 'stockTransfer']);
             Route::resource('stock-adjustments', StockAdjustmentController::class)->parameters(['stock-adjustments' => 'stockAdjustment']);
 
@@ -111,6 +118,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/register', [RegisterController::class, 'index'])->name('register');
             Route::post('/register/checkout', [RegisterController::class, 'checkout'])->middleware('throttle:60,1')->name('register.checkout');
             Route::get('/register/receipt/{bill}', [RegisterController::class, 'receipt'])->name('register.receipt');
+            Route::post('/register/customers', [RegisterController::class, 'storeCustomer'])->middleware('throttle:30,1')->name('register.customers.store');
 
             Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
             Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');

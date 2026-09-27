@@ -7,7 +7,7 @@
  */
 const STORAGE_KEY = 'shoppulse_register_cart';
 
-export default function register({ products = [], defaultTax = 0, oldTendered = null } = {}) {
+export default function register({ products = [], defaultTax = 0, oldTendered = null, customers = [], storeCustomerUrl = '' } = {}) {
     return {
         products,
         defaultTax,
@@ -24,6 +24,13 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
         reference: '',
         flash: '',
         submitting: false,
+        customers,
+        customer: null, // { id, name, phone }
+        customerOpen: false,
+        customerSearch: '',
+        newCustomer: { name: '', phone: '' },
+        customerError: '',
+        paidNow: '',
 
         init() {
             try {
@@ -34,18 +41,20 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
                     this.discountMode = saved.discountMode ?? 'amount';
                     this.discountInput = saved.discountInput ?? '';
                     this.showDiscount = this.discountInput !== '';
+                    this.customer = saved.customer ? this.customers.find((c) => c.id === saved.customer.id) ?? null : null;
                 }
             } catch (e) { /* storage unavailable - start empty */ }
 
             this.$watch('cart', () => this.persist(), { deep: true });
             this.$watch('discountInput', () => this.persist());
             this.$watch('discountMode', () => this.persist());
+            this.$watch('customer', () => this.persist());
             this.$nextTick(() => this.$refs.search?.focus());
         },
 
         persist() {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({ cart: this.cart, discountMode: this.discountMode, discountInput: this.discountInput }));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ cart: this.cart, discountMode: this.discountMode, discountInput: this.discountInput, customer: this.customer }));
             } catch (e) { /* ignore */ }
         },
 
@@ -85,6 +94,7 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
             this.cart = [];
             this.discountInput = '';
             this.showDiscount = false;
+            this.customer = null;
             this.$refs.search?.focus();
         },
 
@@ -132,6 +142,54 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
         get total() { return this.round(this.subtotal + this.tax - this.discount); },
         get change() { return Math.max((Number(this.tendered) || 0) - this.total, 0); },
         get short() { return this.method === 'cash' && (Number(this.tendered) || 0) + 0.005 < this.total; },
+        get owed() { return Math.max(this.total - Math.min(Number(this.paidNow) || 0, this.total), 0); },
+
+        /* ------------------------------------------------------------ customer */
+
+        get customerMatches() {
+            const q = this.customerSearch.trim().toLowerCase();
+            const list = q === '' ? this.customers : this.customers.filter((c) =>
+                c.name.toLowerCase().includes(q) || (c.phone ?? '').includes(q));
+            return list.slice(0, 30);
+        },
+
+        openCustomer() {
+            this.customerOpen = true;
+            this.customerSearch = '';
+            this.customerError = '';
+            this.newCustomer = { name: '', phone: '' };
+            this.$nextTick(() => this.$refs.customerSearch?.focus());
+        },
+
+        chooseCustomer(c) {
+            this.customer = c;
+            this.customerOpen = false;
+            this.toast(c ? `Customer: ${c.name}` : 'Walk-in customer');
+            if (!c && this.method === 'due') this.method = 'cash';
+        },
+
+        async createCustomer() {
+            this.customerError = '';
+            // Typing digits in the search box pre-fills the phone; letters pre-fill the name.
+            const token = document.querySelector('meta[name=csrf-token]')?.content;
+            try {
+                const res = await fetch(storeCustomerUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                    body: JSON.stringify(this.newCustomer),
+                });
+                const body = await res.json();
+                if (!res.ok) {
+                    this.customerError = Object.values(body.errors ?? {})[0]?.[0] ?? body.message ?? 'Could not add the customer.';
+                    return;
+                }
+                this.customers.push(body);
+                this.customers.sort((a, b) => a.name.localeCompare(b.name));
+                this.chooseCustomer(body);
+            } catch (e) {
+                this.customerError = 'Could not reach the server. Check the connection and try again.';
+            }
+        },
 
         quickAmounts() {
             const t = this.total;
@@ -147,16 +205,18 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
             this.cartOpen = false;
             this.payOpen = true;
             this.tendered = '';
+            this.paidNow = '';
+            if (this.method === 'due' && !this.customer) this.method = 'cash';
             this.$nextTick(() => (this.method === 'cash' ? this.$refs.tendered : this.$refs.reference)?.focus());
         },
 
         pickMethod(m) {
             this.method = m;
-            this.$nextTick(() => (m === 'cash' ? this.$refs.tendered : this.$refs.reference)?.focus());
+            this.$nextTick(() => ({ cash: this.$refs.tendered, due: this.$refs.paidNow }[m] ?? this.$refs.reference)?.focus());
         },
 
         complete(event) {
-            if (this.short || this.submitting) { event.preventDefault(); return; }
+            if ((this.method !== 'due' && this.short) || this.submitting) { event.preventDefault(); return; }
             if (this.method === 'cash' && this.tendered === '') this.tendered = this.total.toFixed(2);
             this.submitting = true;
         },
@@ -164,7 +224,10 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
         /* --------------------------------------------------------------- misc */
 
         keys(e) {
-            if (e.key === 'F2' || (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName))) {
+            if (e.key === 'F4') {
+                e.preventDefault();
+                this.openCustomer();
+            } else if (e.key === 'F2' || (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName))) {
                 e.preventDefault();
                 this.payOpen = false;
                 this.$refs.search?.focus();
@@ -173,7 +236,8 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
                 e.preventDefault();
                 this.openPay();
             } else if (e.key === 'Escape') {
-                if (this.payOpen) this.payOpen = false;
+                if (this.customerOpen) this.customerOpen = false;
+                else if (this.payOpen) this.payOpen = false;
                 else if (this.cartOpen) this.cartOpen = false;
                 else this.search = '';
             }

@@ -69,9 +69,6 @@ class BillingService
             'received_by' => $receivedBy,
         ]);
 
-        $bill->refresh();
-        $bill->update([
-            'status' => $bill->balanceDue() <= 0 ? 'paid' : 'partially_paid',
-        ]);
+        $bill->refreshStatus();
     }
 }

@@ -5,7 +5,7 @@
 --}}
 @php $cur = $currency ? $currency.' ' : ''; @endphp
 <x-layouts.register title="Register">
-    <div class="h-full flex" x-data="register({ products: @js($products), defaultTax: @js($defaultTax), oldTendered: @js(old('tendered')) })"
+    <div class="h-full flex" x-data="register({ products: @js($products), defaultTax: @js($defaultTax), oldTendered: @js(old('tendered')), customers: @js($customers), storeCustomerUrl: @js(route('pos.register.customers.store')) })"
          @keydown.window="keys($event)">
 
         {{-- ============================== Products ============================== --}}
@@ -87,6 +87,20 @@
                 </div>
             </div>
 
+            <button type="button" @click="openCustomer()" class="mx-4 mt-3 flex items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-inset text-left transition-colors hover:bg-zinc-50"
+                    :class="customer ? 'ring-primary-200 bg-primary-50/50' : 'ring-zinc-200'">
+                <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold"
+                      :class="customer ? 'bg-primary-600 text-white' : 'bg-zinc-100 text-zinc-400'">
+                    <span x-show="customer" x-text="customer?.name?.charAt(0)?.toUpperCase()"></span>
+                    <svg x-show="!customer" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6" stroke-linecap="round"/></svg>
+                </span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-medium truncate" x-text="customer ? customer.name : 'Walk-in customer'"></span>
+                    <span class="block text-xs text-zinc-500 truncate" x-text="customer ? (customer.phone || 'No phone') : 'Add a customer to sell on credit'"></span>
+                </span>
+                <kbd class="hidden sm:block text-[11px] text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5">F4</kbd>
+            </button>
+
             <ul class="flex-1 overflow-y-auto divide-y divide-zinc-100 min-h-[8rem]">
                 <template x-for="line in cart" :key="line.id">
                     <li class="px-4 py-3">
@@ -158,7 +172,7 @@
         <div x-show="payOpen" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="pay-title">
             <div class="absolute inset-0 bg-clot/60" @click="payOpen = false" x-show="payOpen" x-transition.opacity></div>
             <form method="POST" action="{{ route('pos.register.checkout') }}" @submit="complete($event)"
-                  class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
+                  class="relative w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
                   x-show="payOpen" x-transition>
                 @csrf
                 <template x-for="(line, i) in cart" :key="line.id">
@@ -169,6 +183,8 @@
                 </template>
                 <input type="hidden" name="discount" :value="discount.toFixed(2)">
                 <input type="hidden" name="method" :value="method">
+                <input type="hidden" name="customer_id" :value="customer?.id ?? ''">
+                <input type="hidden" name="paid_now" :value="method === 'due' ? (Number(paidNow) || 0) : ''">
 
                 <div class="sidebar-surface text-bone px-6 pt-5 pb-6">
                     <div class="flex items-center justify-between">
@@ -181,12 +197,24 @@
                 </div>
 
                 <div class="p-5 space-y-4">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-label="Payment method">
+                    <div class="grid grid-cols-2 gap-2" :class="customer ? 'sm:grid-cols-5' : 'sm:grid-cols-4'" role="radiogroup" aria-label="Payment method">
                         @foreach ($methods as $key => $label)
                             <button type="button" role="radio" @click="pickMethod('{{ $key }}')" :aria-checked="method === '{{ $key }}'"
                                     :class="method === '{{ $key }}' ? 'bg-primary-600 text-white ring-primary-600' : 'bg-white text-zinc-700 ring-zinc-300 hover:ring-zinc-400'"
                                     class="h-11 rounded-lg ring-1 ring-inset text-sm font-medium transition-colors">{{ $label }}</button>
                         @endforeach
+                        <button type="button" role="radio" x-show="customer" x-cloak @click="pickMethod('due')" :aria-checked="method === 'due'"
+                                :class="method === 'due' ? 'bg-primary-600 text-white ring-primary-600' : 'bg-white text-zinc-700 ring-zinc-300 hover:ring-zinc-400'"
+                                class="h-11 rounded-lg ring-1 ring-inset text-sm font-medium transition-colors col-span-2 sm:col-span-1">Pay later</button>
+                    </div>
+
+                    <div x-show="method === 'due'" x-cloak class="space-y-3">
+                        <label for="paid_now" class="block text-sm font-medium text-zinc-700">Paid now in cash <span class="font-normal text-zinc-400">(optional)</span></label>
+                        <input id="paid_now" x-ref="paidNow" x-model="paidNow" type="number" step="0.01" min="0" :max="total" inputmode="decimal" placeholder="0.00" class="input h-12 text-xl text-right tabular-nums">
+                        <div class="flex items-baseline justify-between rounded-xl px-4 py-3 bg-primary-50">
+                            <span class="text-sm text-primary-800">Goes on <span class="font-semibold" x-text="customer?.name"></span>'s account</span>
+                            <span class="font-display text-3xl tabular-nums text-primary-700" x-text="money(owed)"></span>
+                        </div>
                     </div>
 
                     <div x-show="method === 'cash'" class="space-y-3">
@@ -205,20 +233,62 @@
                         </div>
                     </div>
 
-                    <div x-show="method !== 'cash'" x-cloak>
+                    <div x-show="method !== 'cash' && method !== 'due'" x-cloak>
                         <label for="reference" class="block text-sm font-medium text-zinc-700 mb-1.5">Reference <span class="font-normal text-zinc-400">(optional)</span></label>
                         <input id="reference" x-ref="reference" x-model="reference" name="reference" maxlength="100" class="input h-11"
                                :placeholder="method === 'mobile_wallet' ? 'Transaction ID' : (method === 'card' ? 'Last 4 digits or approval code' : '')">
                     </div>
 
                     @error('tendered')<p class="text-sm text-primary-600">{{ $message }}</p>@enderror
+                    @error('paid_now')<p class="text-sm text-primary-600">{{ $message }}</p>@enderror
+                    @error('customer_id')<p class="text-sm text-primary-600">{{ $message }}</p>@enderror
 
-                    <button type="submit" :disabled="short || submitting" class="btn-primary w-full h-14 text-lg rounded-xl">
+                    <button type="submit" :disabled="(method !== 'due' && short) || submitting" class="btn-primary w-full h-14 text-lg rounded-xl">
                         <span x-show="!submitting">Complete sale</span>
                         <span x-show="submitting" x-cloak>Saving&hellip;</span>
                     </button>
                 </div>
             </form>
+        </div>
+
+        {{-- ============================== Customer ============================== --}}
+        <div x-show="customerOpen" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="cust-title">
+            <div class="absolute inset-0 bg-clot/60" @click="customerOpen = false"></div>
+            <div class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]" x-show="customerOpen" x-transition>
+                <div class="px-5 pt-5 pb-3 flex items-center justify-between">
+                    <h2 id="cust-title" class="font-display text-xl">Customer</h2>
+                    <button type="button" @click="customerOpen = false" class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100" aria-label="Close">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
+                <div class="px-5">
+                    <input x-ref="customerSearch" x-model="customerSearch" type="search" placeholder="Search name or phone" aria-label="Search customers" class="input h-11"
+                           @keydown.enter.prevent="customerMatches.length === 1 && chooseCustomer(customerMatches[0])">
+                </div>
+                <ul class="flex-1 overflow-y-auto mt-3 border-t border-zinc-100 divide-y divide-zinc-100 min-h-[6rem]">
+                    <li>
+                        <button type="button" @click="chooseCustomer(null)" class="w-full text-left px-5 py-3 hover:bg-zinc-50 text-sm" :class="!customer ? 'font-semibold text-primary-700' : 'text-zinc-600'">Walk-in customer (no account)</button>
+                    </li>
+                    <template x-for="c in customerMatches" :key="c.id">
+                        <li>
+                            <button type="button" @click="chooseCustomer(c)" class="w-full text-left px-5 py-3 hover:bg-zinc-50 flex justify-between gap-3" :class="customer?.id === c.id ? 'bg-primary-50/60' : ''">
+                                <span class="text-sm font-medium truncate" x-text="c.name"></span>
+                                <span class="text-sm text-zinc-500 tabular-nums shrink-0" x-text="c.phone ?? ''"></span>
+                            </button>
+                        </li>
+                    </template>
+                    <li x-show="customerSearch && customerMatches.length === 0" class="px-5 py-4 text-sm text-zinc-500">No customer matches. Add them below.</li>
+                </ul>
+                <form @submit.prevent="createCustomer()" class="border-t border-zinc-200 bg-zinc-50/70 px-5 py-4 space-y-2 rounded-b-2xl">
+                    <p class="text-sm font-medium">New customer</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input x-model="newCustomer.name" required maxlength="150" placeholder="Name" aria-label="New customer name" class="input h-10">
+                        <input x-model="newCustomer.phone" type="tel" maxlength="30" placeholder="Phone" aria-label="New customer phone" class="input h-10">
+                    </div>
+                    <p x-show="customerError" x-text="customerError" class="text-sm text-primary-600"></p>
+                    <button class="btn-primary w-full">Add and select</button>
+                </form>
+            </div>
         </div>
 
         {{-- Tiny confirmation toast --}}

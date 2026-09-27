@@ -10,13 +10,18 @@ class Payment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['bill_id', 'received_by', 'method', 'amount', 'reference'];
+    protected $fillable = ['bill_id', 'customer_receipt_id', 'received_by', 'method', 'amount', 'reference'];
 
     protected $casts = ['amount' => 'decimal:2'];
 
     public function bill(): BelongsTo
     {
         return $this->belongsTo(Bill::class);
+    }
+
+    public function receipt(): BelongsTo
+    {
+        return $this->belongsTo(CustomerReceipt::class, 'customer_receipt_id');
     }
 
     public function receivedBy(): BelongsTo

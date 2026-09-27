@@ -17,6 +17,7 @@ class StockMovement extends Model
         'goods_received' => 'Goods received',
         'purchase_return' => 'Returned to supplier',
         'transfer' => 'Transfer',
+        'sale_return' => 'Customer return',
         'purchase' => 'Purchase',
         'waste' => 'Waste',
         'adjustment' => 'Adjustment',

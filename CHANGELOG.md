@@ -2,6 +2,16 @@
 
 ## 2.0.1
 
+- **Customers & credit sales**: customer records (phone, address, credit
+  limit) with an account page showing a running balance. At the register,
+  pick or quick-add a customer (F4) and sell on "Pay later" with an optional
+  part payment; credit limits are enforced. Receipts show what's owed.
+- **Due collections**: collect from a customer and it's applied to their
+  oldest unpaid bills first; deleting a collection puts the due back.
+- **Sales returns**: find a receipt, choose quantities (refund includes each
+  item's share of tax/discount), refund in cash/card/mobile or take it off
+  what they owe, and optionally restock. Deleting a return reverses it.
+  Run `php artisan migrate`.
 - **Register** (`/pos/register`): a full-screen checkout. Search, scan a
   barcode (Enter adds an exact SKU match), filter by category, tap products;
   cart with +/- quantities, live stock left, tax, discount (amount or %);

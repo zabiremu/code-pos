@@ -43,6 +43,23 @@
 
     @if ($isAdminOrManager)
         <div>
+            <p class="px-3 mb-2 text-xs font-medium text-bone/40">Customers</p>
+            <div class="space-y-1">
+                <a href="{{ route('admin.customers.index') }}" class="{{ $link('admin.customers.*') }}" {{ $current('admin.customers.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6" stroke-linecap="round"/></svg>
+                    Customers
+                </a>
+                <a href="{{ route('admin.customer-receipts.index') }}" class="{{ $link('admin.customer-receipts.*') }}" {{ $current('admin.customer-receipts.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3S9.5 10 12 10.5s4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3" stroke-linecap="round"/></svg>
+                    Due collections
+                </a>
+                <a href="{{ route('admin.sale-returns.index') }}" class="{{ $link('admin.sale-returns.*') }}" {{ $current('admin.sale-returns.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M9 14 4 9l5-5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h11a5 5 0 0 1 0 10h-3" stroke-linecap="round"/></svg>
+                    Sales returns
+                </a>
+            </div>
+        </div>
+        <div>
             <p class="px-3 mb-2 text-xs font-medium text-bone/40">Catalog</p>
             <div class="space-y-1">
                 <a href="{{ route('admin.products.index') }}" class="{{ $link('admin.products.*') }}" {{ $current('admin.products.*') }}>
