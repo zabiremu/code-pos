@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Facade;
 
 return [
-    'name' => env('APP_NAME', 'ShopPulse POS'),
+    // Old placeholder names in .env ("POS", "Restaurant POS", "Laravel") fall back to the product name.
+    'name' => App\Support\Brand::resolve(env('APP_NAME')),
     'env' => env('APP_ENV', 'production'),
     'debug' => (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Support\Brand;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -35,8 +36,8 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        if (! empty($s['shop_name'])) {
-            config(['app.name' => $s['shop_name']]);
+        if (! Brand::isPlaceholder($s['shop_name'] ?? null)) {
+            config(['app.name' => trim($s['shop_name'])]);
         }
 
         if (! empty($s['timezone']) && in_array($s['timezone'], timezone_identifiers_list(), true)) {
