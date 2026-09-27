@@ -22,3 +22,5 @@ docker-compose.override.yml
 # User uploads (product images) - live on the server only
 /public/uploads/*
 !/public/uploads/.gitkeep
+/storage/installed.lock
+/storage/app/license.json
