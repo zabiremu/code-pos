@@ -7,6 +7,8 @@ use App\Models\Customer;
 use App\Models\CustomerReceipt;
 use App\Models\Product;
 use App\Models\SaleReturn;
+use App\Models\Warehouse;
+use App\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesStaff;
 use Tests\TestCase;
@@ -17,7 +19,10 @@ class CustomerFlowTest extends TestCase
 
     private function product(): Product
     {
-        return Product::create(['name' => 'Rice 1kg', 'base_price' => 100, 'track_stock' => true, 'stock_quantity' => 50, 'is_available' => true]);
+        $product = Product::create(['name' => 'Rice 1kg', 'base_price' => 100, 'track_stock' => true, 'is_available' => true]);
+        app(StockService::class)->adjust($product, Warehouse::default()->id, 50, 'opening');
+
+        return $product->fresh();
     }
 
     private function creditSale(Customer $customer, Product $product, int $qty, float $paidNow = 0)
@@ -88,7 +93,7 @@ class CustomerFlowTest extends TestCase
         ])->assertSessionHasErrors();
 
         // Deleting the return puts the due and stock back.
-        $this->delete(route('admin.sale-returns.destroy', SaleReturn::first()));
+        $this->delete(route('admin.sale-returns.destroy', SaleReturn::first()))->assertSessionHasNoErrors();
         $this->assertEquals(200, $customer->due());
         $this->assertEquals(42, (float) $rice->fresh()->stock_quantity);
 

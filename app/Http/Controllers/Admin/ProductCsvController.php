@@ -251,24 +251,12 @@ class ProductCsvController extends Controller
 
         $id = match ($type) {
             'category' => (Category::whereRaw('lower(name) = ?', [$key])->first()
-                ?? Category::create(['name' => $name, 'slug' => $this->uniqueSlug($name), 'is_active' => true]))->id,
+                ?? Category::create(['name' => $name, 'is_active' => true]))->id,
             'brand' => (Brand::whereRaw('lower(name) = ?', [$key])->first() ?? Brand::create(['name' => $name, 'is_active' => true]))->id,
             'unit' => (Unit::whereRaw('lower(short_name) = ?', [$key])->orWhereRaw('lower(name) = ?', [$key])->first()
                 ?? Unit::create(['name' => $name, 'short_name' => Str::limit($name, 20, ''), 'allow_decimal' => in_array($key, ['kg', 'g', 'l', 'ml', 'litre', 'liter', 'kilogram', 'gram', 'metre', 'meter', 'm'], true), 'is_active' => true]))->id,
         };
 
         return $cache[$type][$key] = $id;
-    }
-
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'category';
-        $slug = $base;
-        $n = 2;
-        while (Category::where('slug', $slug)->exists()) {
-            $slug = $base.'-'.$n++;
-        }
-
-        return $slug;
     }
 }

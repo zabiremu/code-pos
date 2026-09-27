@@ -31,7 +31,7 @@ class StaffManagementTest extends TestCase
 
     public function test_admin_can_update_an_employees_full_profile(): void
     {
-        $employee = $this->staff('cashier', ['name' => 'Old Name']);
+        $employee = $this->staff('manager', ['name' => 'Old Name']);
 
         $this->actingAs($this->staff('admin'))
             ->put(route('admin.staff.update', $employee), [
@@ -48,7 +48,7 @@ class StaffManagementTest extends TestCase
         $this->assertSame('New Name', $employee->name);
         $this->assertSame('01711111111', $employee->phone);
         $this->assertTrue($employee->hasRole('cashier'));
-        $this->assertFalse($employee->hasRole('cashier'));
+        $this->assertFalse($employee->hasRole('manager'));
     }
 
     public function test_updating_an_employee_can_deactivate_their_account(): void

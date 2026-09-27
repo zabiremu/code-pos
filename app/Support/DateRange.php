@@ -75,6 +75,8 @@ class DateRange
     /** @return array{0: string, 1: string} for whereBetween on date columns */
     public function betweenDates(): array
     {
-        return [$this->from->toDateString(), $this->to->toDateString()];
+        // SQLite stores `date`-cast values as "Y-m-d 00:00:00", which sorts after a bare
+        // "Y-m-d" and would drop the last day. MySQL DATE columns compare fine either way.
+        return [$this->from->toDateString(), $this->to->toDateString().' 23:59:59'];
     }
 }

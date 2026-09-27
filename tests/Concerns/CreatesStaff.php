@@ -2,6 +2,7 @@
 
 namespace Tests\Concerns;
 
+use App\Enums\Role as PosRole;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 
@@ -10,7 +11,9 @@ trait CreatesStaff
 {
     protected function staff(string $role, array $attributes = []): User
     {
-        Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        foreach (PosRole::values() as $name) {
+            Role::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
+        }
 
         $user = User::factory()->create($attributes);
         $user->assignRole($role);
