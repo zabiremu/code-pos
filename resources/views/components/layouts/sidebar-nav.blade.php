@@ -30,7 +30,11 @@
         @endif
 
         @if ($user?->hasAnyRole(['admin', 'manager', 'cashier']))
-            <a href="{{ route('pos.sales.index') }}" class="{{ $link('pos.*') }}" {{ $current('pos.*') }}>
+            <a href="{{ route('pos.register') }}" class="{{ $link('pos.register*') }}" {{ $current('pos.register*') }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 20h10M12 16v4M7 8h4" stroke-linecap="round"/></svg>
+                Register
+            </a>
+            <a href="{{ route('pos.sales.index') }}" class="{{ $link('pos.sales*') }}" {{ $current('pos.sales*') }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke-linecap="round"/></svg>
                 Sales
             </a>

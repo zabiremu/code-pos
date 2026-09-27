@@ -2,6 +2,13 @@
 
 ## 2.0.1
 
+- **Register** (`/pos/register`): a full-screen checkout. Search, scan a
+  barcode (Enter adds an exact SKU match), filter by category, tap products;
+  cart with +/- quantities, live stock left, tax, discount (amount or %);
+  pay by cash (quick amounts + change), card, mobile pay or other; the whole
+  sale is saved in one step and closed. 80mm printable receipt, Enter for
+  the next sale. Keys: F2 search, F9 pay, Esc back. The cart survives a
+  refresh. "New sale" buttons now open the register.
 - **Supplier payments & dues**: record payments against a GRN or on account
   (cash, bank, mobile banking, cheque). Supplier page is now a ledger with a
   running balance; the supplier list shows what you owe each one; GRNs show

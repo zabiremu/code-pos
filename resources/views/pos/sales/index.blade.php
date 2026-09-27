@@ -7,11 +7,8 @@
 --}}
 <x-layouts.admin :title="'Sales'">
     <div class="flex items-center justify-between gap-3 mb-4">
-        <p class="text-sm text-zinc-500">Sales currently open or billed, awaiting payment.</p>
-        <form method="POST" action="{{ route('pos.sales.store') }}">
-            @csrf
-            <button class="btn-primary shrink-0">New sale</button>
-        </form>
+        <p class="text-sm text-zinc-500">Sales still open or awaiting payment. Ring up new sales in the register.</p>
+        <a href="{{ route('pos.register') }}" class="btn-primary shrink-0">Open register</a>
     </div>
 
     {{-- Status tabs --}}

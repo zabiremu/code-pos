@@ -44,7 +44,7 @@
     /* Surfaces - shadow + inset ring (not a flat border) reads as a
        crisper, more finished edge at this size than border alone. */
     .card {
-        @apply bg-white rounded-xl shadow-sm ring-1 ring-zinc-900/5;
+        @apply min-w-0 bg-white rounded-xl shadow-sm ring-1 ring-zinc-900/5;
     }
     .card-body {
         @apply p-5;
@@ -57,7 +57,7 @@
     .input {
         /* No @tailwindcss/forms plugin, so border and padding are set here -
            Tailwind's preflight otherwise leaves inputs borderless. */
-        @apply block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+        @apply block w-full max-w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
     }
 
     /* Badges (status pills) - a soft fill plus a slightly darker inset

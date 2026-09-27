@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\POS\BillController;
 use App\Http\Controllers\POS\PaymentController;
+use App\Http\Controllers\POS\RegisterController;
 use App\Http\Controllers\POS\SaleController;
 use App\Http\Controllers\POS\SaleItemController;
 use App\Http\Controllers\Admin\ShiftController as AdminShiftController;
@@ -107,6 +108,10 @@ Route::middleware(['auth'])->group(function () {
         ->prefix('pos')
         ->name('pos.')
         ->group(function () {
+            Route::get('/register', [RegisterController::class, 'index'])->name('register');
+            Route::post('/register/checkout', [RegisterController::class, 'checkout'])->middleware('throttle:60,1')->name('register.checkout');
+            Route::get('/register/receipt/{bill}', [RegisterController::class, 'receipt'])->name('register.receipt');
+
             Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
             Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
             Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');

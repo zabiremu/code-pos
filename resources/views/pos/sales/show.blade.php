@@ -22,7 +22,7 @@
             @endforeach
 
             @if ($sale->items->isEmpty())
-                <p class="px-5 py-6 text-sm text-zinc-400">No items yet — add some from the product list on the right.</p>
+                <p class="px-5 py-6 text-sm text-zinc-400">No items yet. Add a product below, or use the register for faster checkout.</p>
             @endif
         </div>
 

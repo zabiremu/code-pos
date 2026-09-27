@@ -42,13 +42,10 @@
                         @endif
                     </p>
                 </div>
-                <form method="POST" action="{{ route('pos.sales.store') }}">
-                    @csrf
-                    <button class="btn bg-bone text-primary-700 hover:bg-white shadow-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-                        New sale
-                    </button>
-                </form>
+                <a href="{{ route('pos.register') }}" class="btn bg-bone text-primary-700 hover:bg-white shadow-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+                    New sale
+                </a>
             </div>
 
             <div class="mt-8 relative">

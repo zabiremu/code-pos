@@ -15,7 +15,10 @@ use Illuminate\Support\Collection;
  */
 class BillingService
 {
-    public function createBill(Sale $sale, ?Collection $itemIds = null, ?Discount $discount = null, float $serviceChargeRate = 0): Bill
+    /**
+     * @param  float  $manualDiscount  a flat amount the cashier knocked off at the register, on top of any discount code
+     */
+    public function createBill(Sale $sale, ?Collection $itemIds = null, ?Discount $discount = null, float $serviceChargeRate = 0, float $manualDiscount = 0): Bill
     {
         $items = $sale->items()
             ->when($itemIds, fn ($q) => $q->whereIn('id', $itemIds))
@@ -39,6 +42,9 @@ class BillingService
                 ? $subtotal * ($discount->value / 100)
                 : min($discount->value, $subtotal);
         }
+
+        // Never discount below zero: cap at everything that would be charged.
+        $discountTotal = min($discountTotal + max($manualDiscount, 0), $subtotal + $taxTotal);
 
         $serviceCharge = $subtotal * ($serviceChargeRate / 100);
         $grandTotal = $subtotal + $taxTotal + $serviceCharge - $discountTotal;
