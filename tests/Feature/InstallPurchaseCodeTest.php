@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\PurchaseCodeService;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class InstallPurchaseCodeTest extends TestCase
@@ -78,6 +79,17 @@ class InstallPurchaseCodeTest extends TestCase
 
         $this->assertFalse($result['valid']);
         $this->assertStringContainsString('Could not reach the license server', $result['message']);
+    }
+
+    public function test_unreachable_server_logs_the_real_cause_for_support(): void
+    {
+        Http::fake(['license.test/*' => Http::failedConnection('cURL error 60: SSL certificate problem')]);
+        Log::spy();
+
+        app(PurchaseCodeService::class)->verify(self::CODE, 'shop.com');
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(fn ($message, $context) => str_contains($message, 'SSL certificate problem')
+            && $context['url'] === 'https://license.test/');
     }
 
     public function test_an_error_status_is_never_treated_as_valid(): void

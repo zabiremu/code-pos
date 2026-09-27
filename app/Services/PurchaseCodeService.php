@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Talks to the author's license server (see license-server/ and
@@ -73,16 +74,21 @@ class PurchaseCodeService
 
     private function call(string $action, string $purchaseCode, string $domain): array
     {
+        $url = rtrim((string) config('license.server'), '/').'/';
+
         try {
             $response = Http::asForm()
                 ->acceptJson()
                 ->timeout(15)
-                ->post(rtrim((string) config('license.server'), '/').'/', [
+                ->post($url, [
                     'action' => $action,
                     'purchase_code' => $purchaseCode,
                     'domain' => $domain,
                 ]);
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
+            // The buyer gets the friendly message; the real cause (DNS, SSL, timeout) goes to storage/logs.
+            Log::warning('License server unreachable: '.$e->getMessage(), ['url' => $url, 'action' => $action]);
+
             return ['valid' => false, 'message' => 'Could not reach the license server. Check this server\'s internet connection and try again.'];
         }
 
