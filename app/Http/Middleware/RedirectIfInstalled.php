@@ -15,7 +15,7 @@ class RedirectIfInstalled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (file_exists(storage_path('installed.lock'))) {
+        if (file_exists(config('app.installed_lock'))) {
             abort(404);
         }
 

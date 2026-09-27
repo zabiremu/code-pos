@@ -60,8 +60,23 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed   # seeds roles, a demo admin (admin@example.com / password), and a sample catalog
+echo installed > storage/installed.lock   # marks this copy installed - see below
 php artisan serve
 ```
+
+> **Existing installs must have `storage/installed.lock`.** Until that file
+> exists, every web request is redirected to the `/install` wizard (that's
+> what makes a fresh CodeCanyon upload land on the installer). The web
+> installer writes it for you; any copy set up another way — dev machines,
+> the live demo, CLI installs, and every install upgraded from a version
+> before this redirect existed — needs it created once:
+>
+> ```bash
+> echo installed > storage/installed.lock
+> ```
+>
+> `INSTALLER_REDIRECT=false` in `.env` switches the redirect off entirely
+> (`phpunit.xml` does this for the test suite).
 
 `npm install && npm run build` isn't required to get running — the compiled
 `public/build/` output is committed to this repo (see below) — but run it
@@ -83,6 +98,15 @@ For the web installer (`/install`) instead of the CLI migrate above: it's
 locked shut once `storage/installed.lock` exists, so it only runs on a truly
 fresh deploy. Delete that file to re-open it (e.g. after cloning fresh onto
 a server).
+
+On a fresh upload with no `.env`, `bootstrap/app.php` first runs
+`App\Support\InstallerBootstrap` (before Laravel loads `.env`): it copies
+`.env.example` to `.env`, generates `APP_KEY` once (it's never rotated
+afterwards), and switches sessions/cache/queue to file/sync so the wizard
+works before a database exists. If `.env`, `storage/` or `bootstrap/cache`
+aren't writable it shows a plain page listing exactly which paths to fix.
+Each wizard step is gated server-side on the previous one, so `/install/finish`
+can't be hit directly to lock the owner out.
 
 ### Shared hosting: no "/public/" in the URL
 

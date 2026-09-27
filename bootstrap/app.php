@@ -1,11 +1,17 @@
 <?php
 
 use App\Http\Middleware\RedirectIfInstalled;
+use App\Http\Middleware\RedirectIfNotInstalled;
+use App\Support\InstallerBootstrap;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\RoleMiddleware;
+
+// Before .env is loaded: on a not-yet-installed copy, create .env + APP_KEY
+// and switch to file-based drivers so the /install wizard can boot.
+InstallerBootstrap::run(dirname(__DIR__));
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,6 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'redirect.if.installed' => RedirectIfInstalled::class,
         ]);
+        // Prepended so nothing else (session, auth, DB) runs on a not-installed copy.
+        $middleware->web(prepend: [RedirectIfNotInstalled::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

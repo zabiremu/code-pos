@@ -21,4 +21,9 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    // Written by the web installer's last step; while it's missing, visitors are
+    // sent to /install (see RedirectIfNotInstalled) and /install stays open.
+    'installed_lock' => storage_path('installed.lock'),
+    'installer_redirect' => (bool) env('INSTALLER_REDIRECT', true),
 ];

@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -16,6 +17,10 @@ use Illuminate\Support\Facades\File;
  * welcome -> requirements -> purchase code -> database -> migrate/seed -> finish.
  * Each step is a simple GET (show) / POST (process) pair so it degrades
  * gracefully without any JS framework.
+ *
+ * Every step checks server-side that the one before it passed (install.*
+ * session keys), so the wizard can't be skipped by typing a URL. .env and
+ * APP_KEY are created before Laravel boots - see App\Support\InstallerBootstrap.
  */
 class InstallController extends Controller
 {
@@ -28,7 +33,7 @@ class InstallController extends Controller
         return view('install.welcome');
     }
 
-    public function requirements(): View
+    public function requirements(Request $request): View
     {
         $phpOk = version_compare(PHP_VERSION, '8.2.0', '>=');
 
@@ -36,20 +41,31 @@ class InstallController extends Controller
             ->mapWithKeys(fn ($ext) => [$ext => extension_loaded($ext)]);
 
         $writable = collect(['storage', 'bootstrap/cache'])
-            ->mapWithKeys(fn ($path) => [$path => is_writable(base_path($path))]);
+            ->mapWithKeys(fn ($path) => [$path => is_writable(base_path($path))])
+            ->put('.env', is_writable(app()->environmentFilePath()));
 
         $allOk = $phpOk && $extensions->every(fn ($ok) => $ok) && $writable->every(fn ($ok) => $ok);
+
+        $request->session()->put('install.requirements_ok', $allOk);
 
         return view('install.requirements', compact('phpOk', 'extensions', 'writable', 'allOk'));
     }
 
-    public function showPurchaseCode(): View
+    public function showPurchaseCode(): View|RedirectResponse
     {
+        if (! session('install.requirements_ok')) {
+            return redirect()->route('install.requirements');
+        }
+
         return view('install.purchase-code');
     }
 
     public function verifyPurchaseCode(Request $request, PurchaseCodeService $service): RedirectResponse
     {
+        if (! session('install.requirements_ok')) {
+            return redirect()->route('install.requirements');
+        }
+
         $data = $request->validate([
             'purchase_code' => ['required', 'string', 'max:64'],
         ]);
@@ -76,7 +92,7 @@ class InstallController extends Controller
     /** Tests the DB connection live, writes .env, then runs migrate + seed. */
     public function storeDatabase(Request $request): RedirectResponse
     {
-        abort_unless(session('install.purchase_verified'), 403);
+        abort_unless(session('install.purchase_verified'), 403, 'Verify your purchase code first.');
 
         $data = $request->validate([
             'db_host' => ['required', 'string'],
@@ -87,6 +103,7 @@ class InstallController extends Controller
         ]);
 
         config([
+            'database.default' => 'mysql',
             'database.connections.mysql.host' => $data['db_host'],
             'database.connections.mysql.port' => $data['db_port'],
             'database.connections.mysql.database' => $data['db_database'],
@@ -95,55 +112,80 @@ class InstallController extends Controller
         ]);
 
         try {
-            \DB::connection('mysql')->getPdo();
+            DB::connection('mysql')->getPdo();
         } catch (\Throwable $e) {
-            return back()->withErrors(['db_host' => 'Could not connect: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['db_host' => 'Could not connect: '.$e->getMessage()]);
         }
 
-        $this->writeEnv($data);
+        $this->writeEnv([
+            'DB_CONNECTION' => 'mysql',
+            'DB_HOST' => $data['db_host'],
+            'DB_PORT' => $data['db_port'],
+            'DB_DATABASE' => $data['db_database'],
+            'DB_USERNAME' => $data['db_username'],
+            'DB_PASSWORD' => $data['db_password'] ?? '',
+        ]);
 
-        Artisan::call('key:generate', ['--force' => true]);
-        Artisan::call('migrate', ['--force' => true]);
-        Artisan::call('db:seed', ['--force' => true]);
+        // No key:generate here: APP_KEY was created once before boot, and
+        // rotating it now would make the buyer's session cookie unreadable.
+        try {
+            foreach (['migrate', 'db:seed'] as $command) {
+                if (Artisan::call($command, ['--force' => true]) !== 0) {
+                    throw new \RuntimeException(trim(Artisan::output()) ?: "{$command} failed.");
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withInput()->withErrors([
+                'db_host' => 'Connected, but setting up the tables failed: '.$e->getMessage()
+                    .' Check that the database is empty and this user can create tables, then try again.',
+            ]);
+        }
+
+        $request->session()->put('install.database_done', true);
 
         return redirect()->route('install.finish');
     }
 
-    public function finish(): View
+    public function finish(Request $request): View
     {
-        File::put(storage_path('installed.lock'), now()->toDateTimeString());
+        abort_unless(session('install.database_done'), 403, 'Finish the database step first.');
+
+        File::put(config('app.installed_lock'), now()->toDateTimeString());
+        $this->writeEnv(['APP_URL' => $request->root()]);
+
+        foreach (['config:clear', 'route:clear', 'view:clear'] as $command) {
+            Artisan::call($command);
+        }
+
+        $request->session()->forget('install');
 
         return view('install.finish');
     }
 
     /**
-     * Writes the DB fields into .env. This handles two things a naive
+     * Writes KEY=value pairs into .env. This handles two things a naive
      * string-replace easily gets wrong: (1) preg_replace() treats "$1" etc.
      * in the REPLACEMENT string as backreferences, so a password containing
      * one would get silently mangled if passed to it directly - callback
      * form sidesteps that; (2) a value with a space, "#", or quote would
      * either get truncated by .env's parser or break the line entirely, so
      * every value is quoted/escaped by envValue() rather than written raw.
+     *
+     * @param  array<string, scalar>  $values
      */
-    private function writeEnv(array $db): void
+    private function writeEnv(array $values): void
     {
-        $envPath = base_path('.env');
+        $envPath = app()->environmentFilePath();
         $env = File::exists($envPath) ? File::get($envPath) : File::get(base_path('.env.example'));
 
-        $replacements = [
-            'DB_HOST' => $db['db_host'],
-            'DB_PORT' => $db['db_port'],
-            'DB_DATABASE' => $db['db_database'],
-            'DB_USERNAME' => $db['db_username'],
-            'DB_PASSWORD' => $db['db_password'] ?? '',
-        ];
-
-        foreach ($replacements as $key => $value) {
+        foreach ($values as $key => $value) {
             $line = $key.'='.$this->envValue((string) $value);
 
             $env = preg_match("/^{$key}=.*/m", $env)
                 ? preg_replace_callback("/^{$key}=.*/m", fn () => $line, $env)
-                : $env."\n".$line;
+                : rtrim($env, "\r\n")."\n".$line."\n";
         }
 
         File::put($envPath, $env);

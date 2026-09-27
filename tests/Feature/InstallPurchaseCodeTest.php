@@ -17,9 +17,10 @@ class InstallPurchaseCodeTest extends TestCase
         config(['license.server' => 'https://license.test', 'license.file' => storage_path('framework/testing/license.json')]);
         File::delete(config('license.file'));
 
-        if (File::exists(storage_path('installed.lock'))) {
-            $this->markTestSkipped('This copy is installed (storage/installed.lock), so /install is locked.');
-        }
+        // Never the real storage/installed.lock: point at a path that doesn't exist so /install is open.
+        config(['app.installed_lock' => storage_path('framework/testing/installed-'.uniqid().'.lock')]);
+        // The purchase-code step is gated on the requirements step having passed.
+        $this->withSession(['install.requirements_ok' => true]);
     }
 
     protected function tearDown(): void

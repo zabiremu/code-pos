@@ -117,7 +117,9 @@ php artisan key:generate
 # edit .env with your DB_* values, then:
 php artisan migrate --seed
 php artisan storage:link
+echo installed &gt; storage/installed.lock
 </code></pre>
+    <p>The last line matters: until <code>storage/installed.lock</code> exists, every page redirects to the web installer. The web installer creates it for you; a command-line install has to create it itself.</p>
     <div class="callout warn">
       <strong>If your package didn't include a pre-built <code>vendor/</code> folder:</strong> the web installer (and the app itself) cannot start until dependencies are installed once, because that's what Laravel boots from. Most CodeCanyon buyers are on shared hosting without SSH/Composer access, so the distributed package should ship with <code>vendor/</code> already built (<code>composer install --no-dev --optimize-autoloader</code>, run once before packaging). If yours doesn't have it yet and you have no command-line access, ask your host to run the command above for you, or use a local machine with PHP/Composer to build <code>vendor/</code> and upload it alongside the rest of the files.
     </div>
@@ -166,6 +168,11 @@ php artisan storage:link
     <pre><code>composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 </code></pre>
+    <div class="callout warn">
+      <strong>Make sure <code>storage/installed.lock</code> exists after upgrading.</strong> Visitors to a copy without it are redirected to the installer. Installs made with the web installer already have it; keep it when you replace files. If you installed from the command line, or upgraded from a version that didn't have this redirect, create it once from the project folder:
+      <pre><code>echo installed &gt; storage/installed.lock</code></pre>
+      No command line? In cPanel's File Manager, create a new file named <code>installed.lock</code> inside the <code>storage</code> folder, type <code>installed</code> in it, and save.
+    </div>
     <p>See <code>CHANGELOG.md</code> in the package for what changed in each version.</p>
   </section>
 
@@ -176,7 +183,9 @@ php artisan migrate --force
     <h3>"My URLs show /public/ in them"</h3>
     <p>Point your hosting account's document root at the <code>public/</code> folder. If your host doesn't allow that, leave the project where it is — the included root <code>.htaccess</code> already redirects transparently, so no further action is needed.</p>
     <h3>"A blank page or 500 error on a fresh upload"</h3>
-    <p>This almost always means <code>vendor/</code> is missing or <code>storage/</code> / <code>bootstrap/cache</code> aren't writable. See Installation above.</p>
+    <p>This almost always means <code>vendor/</code> is missing. If <code>storage/</code>, <code>bootstrap/cache</code> or <code>.env</code> aren't writable, you'll instead see a page listing exactly which paths need their permissions changed. See Installation above.</p>
+    <h3>"Every page sends me to /install on a site that's already installed"</h3>
+    <p><code>storage/installed.lock</code> is missing. Create it as described under Updating — don't re-run the installer against a live database.</p>
   </section>
 
   <section id="security">
