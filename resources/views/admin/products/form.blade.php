@@ -157,8 +157,9 @@
                             <li class="px-5 py-6 text-center text-zinc-500">No stock yet. Receive goods with a GRN.</li>
                         @endforelse
                     </ul>
-                    <div class="px-5 py-3 border-t border-zinc-100 text-sm">
+                    <div class="px-5 py-3 border-t border-zinc-100 text-sm flex flex-wrap gap-x-4 gap-y-1">
                         <a href="{{ route('admin.grns.create') }}" class="text-primary-600 font-medium hover:underline underline-offset-4">Receive goods</a>
+                        <a href="{{ route('admin.labels.index', ['products' => $product->id]) }}" class="text-primary-600 font-medium hover:underline underline-offset-4">Print barcode labels</a>
                     </div>
                 </section>
 

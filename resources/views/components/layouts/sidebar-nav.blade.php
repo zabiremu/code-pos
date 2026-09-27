@@ -78,6 +78,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 20h16M6 20V9l6-5 6 5v11" stroke-linejoin="round"/><path d="M10 20v-5h4v5" stroke-linejoin="round"/></svg>
                     Units
                 </a>
+                <a href="{{ route('admin.labels.index') }}" class="{{ $link('admin.labels.*') }}" {{ $current('admin.labels.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12" stroke-linecap="round"/></svg>
+                    Barcode labels
+                </a>
             </div>
         </div>
         <div>

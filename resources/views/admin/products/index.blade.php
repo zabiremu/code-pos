@@ -3,6 +3,11 @@
     $query = fn (array $extra) => array_filter(array_merge(['q' => $search ?: null], $filters, $extra));
 @endphp
 <x-layouts.admin title="Products">
+    <div class="flex flex-wrap justify-end gap-2 -mt-1 mb-3 text-sm">
+        <a href="{{ route('admin.labels.index') }}" class="btn-secondary">Barcode labels</a>
+        <a href="{{ route('admin.products.import') }}" class="btn-secondary">Import</a>
+        <a href="{{ route('admin.products.export') }}" class="btn-secondary">Export CSV</a>
+    </div>
     <x-list-toolbar intro="Everything you sell, with prices and stock across warehouses." :create-route="route('admin.products.create')" create-label="Add product"
                     :search="$search" placeholder="Name or SKU" :action="route('admin.products.index')">
         <x-tab-link :href="route('admin.products.index', $query(['stock' => null]))" :active="empty($filters['stock'])">All</x-tab-link>

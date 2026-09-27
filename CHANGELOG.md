@@ -2,6 +2,15 @@
 
 ## 2.0.1
 
+- **Barcode labels** (Catalog > Barcode labels): pick products and how many
+  stickers each, print on A4 sheets (21/40/65 per page, with "skip spots" for
+  part-used sheets) or 50×25 / 38×25 mm thermal rolls. Code 128 barcodes are
+  generated in PHP (no package) and were checked with a scanner decoder at
+  203 and 300 dpi. "Give barcodes to products without one" assigns numeric SKUs.
+- **Product CSV import/export**: export all products; import creates or
+  updates by SKU, creates missing categories/brands/units, sets opening stock
+  for new products, accepts common header names (price, cost, mrp, barcode),
+  and is all-or-nothing with row-by-row error messages.
 - **Expenses** with categories (Rent, Salaries, utilities... editable), a
   period/category filter and a by-category breakdown.
 - **Reports** section with period presets (today ... this year, custom) and

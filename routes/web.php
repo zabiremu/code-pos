@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\GrnController;
 use App\Http\Controllers\Admin\GrnReturnController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\LabelController;
+use App\Http\Controllers\Admin\ProductCsvController;
 use App\Http\Controllers\Admin\ExpenseCategoryController;
 use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -72,7 +74,16 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
+            // Before the resource so "export"/"import" aren't read as a product id.
+            Route::get('products/export', [ProductCsvController::class, 'export'])->name('products.export');
+            Route::get('products/import', [ProductCsvController::class, 'create'])->name('products.import');
+            Route::post('products/import', [ProductCsvController::class, 'store'])->middleware('throttle:10,1')->name('products.import.store');
+            Route::get('products/import/template', [ProductCsvController::class, 'template'])->name('products.import.template');
             Route::resource('products', ProductController::class)->except('show');
+
+            Route::get('labels', [LabelController::class, 'index'])->name('labels.index');
+            Route::post('labels/print', [LabelController::class, 'print'])->name('labels.print');
+            Route::post('labels/generate-skus', [LabelController::class, 'generateSkus'])->name('labels.generate-skus');
             Route::resource('units', UnitController::class)->except('show');
             Route::resource('brands', BrandController::class)->except('show');
             Route::resource('warehouses', WarehouseController::class)->except('show');
