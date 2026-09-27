@@ -49,10 +49,31 @@ class Grn extends Model
         return $this->hasMany(GrnReturn::class);
     }
 
-    /** Once anything has been returned from it, a GRN is locked. */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SupplierPayment::class);
+    }
+
+    /** GRN total less anything returned from it. */
+    public function payable(): float
+    {
+        return round((float) $this->total - (float) $this->returns()->sum('total'), 2);
+    }
+
+    public function paid(): float
+    {
+        return (float) $this->payments()->sum('amount');
+    }
+
+    public function due(): float
+    {
+        return round($this->payable() - $this->paid(), 2);
+    }
+
+    /** Once anything has been returned from it or paid against it, a GRN is locked. */
     public function isEditable(): bool
     {
-        return ! $this->returns()->exists();
+        return ! $this->returns()->exists() && ! $this->payments()->exists();
     }
 
     public function hasReturnableItems(): bool

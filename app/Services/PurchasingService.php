@@ -102,7 +102,7 @@ class PurchasingService
 
             if ($grn) {
                 if (! $grn->isEditable()) {
-                    throw ValidationException::withMessages(['items' => 'Goods have been returned from this GRN, so it can no longer be changed.']);
+                    throw ValidationException::withMessages(['items' => 'Goods have been returned from this GRN or a payment recorded against it, so it can no longer be changed.']);
                 }
                 $this->reverseGrnStock($grn);
                 $grn->items()->delete();
@@ -146,7 +146,7 @@ class PurchasingService
     {
         DB::transaction(function () use ($grn) {
             if (! $grn->isEditable()) {
-                throw ValidationException::withMessages(['items' => 'Goods have been returned from this GRN. Delete those returns first.']);
+                throw ValidationException::withMessages(['items' => 'This GRN has returns or payments against it. Delete those first.']);
             }
 
             $purchase = $grn->purchase;

@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\GrnController;
 use App\Http\Controllers\Admin\GrnReturnController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\StockAdjustmentController;
+use App\Http\Controllers\Admin\StockTransferController;
+use App\Http\Controllers\Admin\SupplierPaymentController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\POS\BillController;
@@ -74,7 +77,11 @@ Route::middleware(['auth'])->group(function () {
             Route::resource('grns', GrnController::class);
             Route::resource('grn-returns', GrnReturnController::class)->parameters(['grn-returns' => 'grnReturn']);
 
-            Route::resource('suppliers', SupplierController::class)->except('show');
+            Route::resource('suppliers', SupplierController::class);
+            Route::resource('supplier-payments', SupplierPaymentController::class)->except('show')->parameters(['supplier-payments' => 'supplierPayment']);
+
+            Route::resource('stock-transfers', StockTransferController::class)->parameters(['stock-transfers' => 'stockTransfer']);
+            Route::resource('stock-adjustments', StockAdjustmentController::class)->parameters(['stock-adjustments' => 'stockAdjustment']);
 
             Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
             Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');

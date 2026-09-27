@@ -30,6 +30,25 @@ class Supplier extends Model
         return $this->hasMany(Grn::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SupplierPayment::class);
+    }
+
+    /**
+     * What the shop owes this supplier: goods received, minus goods sent
+     * back, minus payments. Negative means the supplier owes the shop
+     * (overpaid / advance).
+     */
+    public function balance(): float
+    {
+        $received = (float) $this->grns()->sum('total');
+        $returned = (float) GrnReturn::whereIn('grn_id', $this->grns()->select('id'))->sum('total');
+        $paid = (float) $this->payments()->sum('amount');
+
+        return round($received - $returned - $paid, 2);
+    }
+
     /** Company name when there is one, otherwise the contact name. */
     public function displayName(): string
     {

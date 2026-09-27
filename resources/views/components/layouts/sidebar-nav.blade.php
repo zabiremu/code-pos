@@ -78,6 +78,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M9 14 4 9l5-5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h11a5 5 0 0 1 0 10h-3" stroke-linecap="round"/></svg>
                     Returns
                 </a>
+                <a href="{{ route('admin.supplier-payments.index') }}" class="{{ $link('admin.supplier-payments.*') }}" {{ $current('admin.supplier-payments.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19M6.5 15h4" stroke-linecap="round"/></svg>
+                    Payments
+                </a>
             </div>
         </div>
         <div>
@@ -86,6 +90,14 @@
                 <a href="{{ route('admin.warehouses.index') }}" class="{{ $link('admin.warehouses.*') }}" {{ $current('admin.warehouses.*') }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12" stroke-linejoin="round"/><path d="M7 21v-8h10v8M7 17h10" stroke-linejoin="round"/></svg>
                     Warehouses
+                </a>
+                <a href="{{ route('admin.stock-transfers.index') }}" class="{{ $link('admin.stock-transfers.*') }}" {{ $current('admin.stock-transfers.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Transfers
+                </a>
+                <a href="{{ route('admin.stock-adjustments.index') }}" class="{{ $link('admin.stock-adjustments.*') }}" {{ $current('admin.stock-adjustments.*') }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke-linecap="round"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+                    Adjustments
                 </a>
                 <a href="{{ route('admin.reports.low-stock') }}" class="{{ $link('admin.reports.low-stock') }}" {{ $current('admin.reports.low-stock') }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 4 2.5 20h19L12 4Z" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5h.01" stroke-linecap="round"/></svg>

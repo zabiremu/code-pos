@@ -64,7 +64,7 @@ class SupplierTest extends TestCase
                 'email' => $supplier->email, // keeping its own email isn't a duplicate
                 'is_active' => '0',
             ])
-            ->assertRedirect(route('admin.suppliers.index'))
+            ->assertRedirect(route('admin.suppliers.show', $supplier))
             ->assertSessionHasNoErrors();
 
         $supplier->refresh();

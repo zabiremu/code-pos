@@ -36,6 +36,7 @@
                     <th class="px-5 py-3 font-medium">Phone</th>
                     <th class="px-5 py-3 font-medium">Email</th>
                     <th class="px-5 py-3 font-medium">VAT / BIN</th>
+                    <th class="px-5 py-3 font-medium text-right">You owe</th>
                     <th class="px-5 py-3 font-medium text-right">Status</th>
                 </tr>
             </thead>
@@ -43,13 +44,15 @@
                 @forelse ($suppliers as $supplier)
                     <tr class="group hover:bg-primary-50/40 transition-colors {{ $supplier->is_active ? '' : 'text-zinc-400' }}">
                         <td class="px-5 py-3 align-top">
-                            <a href="{{ route('admin.suppliers.edit', $supplier) }}" class="font-medium {{ $supplier->is_active ? 'text-zinc-900' : 'text-zinc-500' }} hover:text-primary-600">
+                            <a href="{{ route('admin.suppliers.show', $supplier) }}" class="font-medium {{ $supplier->is_active ? 'text-zinc-900' : 'text-zinc-500' }} hover:text-primary-600">
                                 {{ $supplier->displayName() }}
                             </a>
                             @if ($supplier->company_name)
                                 <div class="text-xs text-zinc-500 mt-0.5">{{ $supplier->name }}</div>
                             @endif
                             <div class="text-xs mt-1 flex gap-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                                <a href="{{ route('admin.suppliers.show', $supplier) }}" class="text-zinc-500 hover:text-primary-600">Ledger</a>
+                                <a href="{{ route('admin.supplier-payments.create', ['supplier_id' => $supplier->id]) }}" class="text-zinc-500 hover:text-primary-600">Pay</a>
                                 <a href="{{ route('admin.suppliers.edit', $supplier) }}" class="text-zinc-500 hover:text-primary-600">Edit</a>
                                 <form method="POST" action="{{ route('admin.suppliers.destroy', $supplier) }}"
                                       onsubmit="return confirm('Delete {{ addslashes($supplier->displayName()) }}? This can\'t be undone.')">
@@ -74,13 +77,17 @@
                             @endif
                         </td>
                         <td class="px-5 py-3 align-top text-zinc-600">{{ $supplier->tax_number ?: '—' }}</td>
+                        @php $owed = round((float) $supplier->received_total - (float) ($returnedBySupplier[$supplier->id] ?? 0) - (float) $supplier->paid_total, 2); @endphp
+                        <td class="px-5 py-3 align-top text-right tabular-nums whitespace-nowrap {{ $owed > 0 ? 'text-primary-700 font-semibold' : 'text-zinc-400' }}">
+                            {{ $owed == 0 ? '—' : ($owed < 0 ? 'Advance '.number_format(abs($owed), 2) : number_format($owed, 2)) }}
+                        </td>
                         <td class="px-5 py-3 align-top text-right">
                             <span class="{{ $supplier->is_active ? 'badge-green' : 'badge-gray' }}">{{ $supplier->is_active ? 'Active' : 'Inactive' }}</span>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-14 text-center">
+                        <td colspan="6" class="px-5 py-14 text-center">
                             @if ($search !== '')
                                 <p class="text-zinc-600">No suppliers match "{{ $search }}".</p>
                                 <a href="{{ route('admin.suppliers.index', array_filter(['status' => $status === 'all' ? null : $status])) }}" class="text-sm text-primary-600 hover:underline underline-offset-4 mt-1 inline-block">Clear search</a>

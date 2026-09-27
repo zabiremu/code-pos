@@ -2,6 +2,13 @@
 
 ## 2.0.1
 
+- **Supplier payments & dues**: record payments against a GRN or on account
+  (cash, bank, mobile banking, cheque). Supplier page is now a ledger with a
+  running balance; the supplier list shows what you owe each one; GRNs show
+  paid/due with a one-click "Pay" button. A GRN with payments is locked.
+- **Stock transfers** between warehouses, and **stock adjustments**
+  (damaged, expired, lost, other, or a stock count that adjusts to what you
+  counted). Both reverse cleanly on edit/delete. Run `php artisan migrate`.
 - **Inventory & purchasing**: Units, Brands and Warehouses (CRUD); products
   gain unit, brand, purchase price, sale price and regular price (MRP), plus
   opening stock into a chosen warehouse. Stock is now tracked per warehouse

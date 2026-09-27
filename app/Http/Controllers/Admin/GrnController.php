@@ -71,7 +71,7 @@ class GrnController extends Controller
 
     public function show(Grn $grn): View
     {
-        $grn->load(['supplier', 'warehouse', 'purchase', 'creator:id,name', 'items.product.unit', 'returns' => fn ($q) => $q->latest('return_date')]);
+        $grn->load(['supplier', 'warehouse', 'purchase', 'creator:id,name', 'items.product.unit', 'returns' => fn ($q) => $q->latest('return_date'), 'payments' => fn ($q) => $q->latest('payment_date')]);
 
         return view('admin.grns.show', compact('grn'));
     }
@@ -79,7 +79,7 @@ class GrnController extends Controller
     public function edit(Grn $grn): View|RedirectResponse
     {
         if (! $grn->isEditable()) {
-            return redirect()->route('admin.grns.show', $grn)->withErrors(['grn' => 'Goods have been returned from this GRN, so it can no longer be edited.']);
+            return redirect()->route('admin.grns.show', $grn)->withErrors(['grn' => 'This GRN has returns or payments against it, so it can no longer be edited.']);
         }
 
         $grn->load(['items', 'purchase.items']);
