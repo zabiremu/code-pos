@@ -18,3 +18,7 @@ yarn-error.log
 /.nova
 *.log
 docker-compose.override.yml
+
+# User uploads (product images) - live on the server only
+/public/uploads/*
+!/public/uploads/.gitkeep

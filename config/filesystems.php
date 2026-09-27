@@ -11,6 +11,16 @@ return [
             'throw' => false,
         ],
 
+        // Product images etc. Lives directly under public/ so it works on shared
+        // hosting where `php artisan storage:link` (a symlink) isn't allowed.
+        'uploads' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+            'url' => rtrim(env('APP_URL', ''), '/').'/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

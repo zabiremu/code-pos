@@ -52,12 +52,23 @@
                 @forelse ($products as $product)
                     <tr class="group hover:bg-primary-50/40 transition-colors">
                         <td class="px-5 py-3 align-top">
+                          <div class="flex items-start gap-3">
+                            <a href="{{ route('admin.products.edit', $product) }}" class="w-11 h-11 rounded-lg ring-1 ring-zinc-200 bg-zinc-50 overflow-hidden shrink-0 flex items-center justify-center" tabindex="-1" aria-hidden="true">
+                                @if ($product->image_path)
+                                    <img src="{{ $product->imageUrl() }}" alt="" loading="lazy" class="w-full h-full object-cover">
+                                @else
+                                    <span class="text-sm font-semibold text-zinc-300">{{ mb_strtoupper(mb_substr($product->name, 0, 1)) }}</span>
+                                @endif
+                            </a>
+                            <div class="min-w-0">
                             <a href="{{ route('admin.products.edit', $product) }}" class="font-medium text-zinc-900 hover:text-primary-600">{{ $product->name }}</a>
                             @if ($product->sku)<div class="text-xs text-zinc-500 mt-0.5">SKU {{ $product->sku }}</div>@endif
                             <div class="text-xs mt-1 flex gap-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                                 <a href="{{ route('admin.products.edit', $product) }}" class="text-zinc-500 hover:text-primary-600">Edit</a>
                                 <x-delete-button :action="route('admin.products.destroy', $product)" :confirm="'Delete '.$product->name.'? This can\'t be undone.'" />
                             </div>
+                            </div>
+                          </div>
                         </td>
                         <td class="px-5 py-3 align-top text-zinc-600">
                             {{ $product->category?->name ?? 'Uncategorised' }}

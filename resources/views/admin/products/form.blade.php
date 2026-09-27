@@ -7,6 +7,7 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <form method="POST" action="{{ $isEdit ? route('admin.products.update', $product) : route('admin.products.store') }}"
+              enctype="multipart/form-data"
               class="xl:col-span-2 space-y-6"
               x-data="{ cost: @js((float) old('purchase_price', $product->purchase_price ?? 0)), sale: @js((float) old('base_price', $product->base_price ?? 0)), track: @js((bool) old('track_stock', $product->track_stock)) }">
             @csrf
@@ -17,6 +18,27 @@
                 <div class="px-5">
                     <x-form-row label="Name" for="name" :required="true">
                         <input id="name" name="name" value="{{ old('name', $product->name) }}" required maxlength="150" class="input">
+                    </x-form-row>
+                    <x-form-row label="Photo" for="image" hint="JPG, PNG or WebP, up to 4 MB. Shown at the register.">
+                        <div class="flex items-start gap-4" x-data="{ preview: @js($product->imageUrl()), removed: false }">
+                            <div class="w-24 h-24 rounded-xl ring-1 ring-zinc-200 bg-zinc-50 overflow-hidden flex items-center justify-center shrink-0">
+                                <img x-show="preview && !removed" :src="preview" alt="" class="w-full h-full object-cover">
+                                <svg x-show="!preview || removed" class="w-8 h-8 text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9" stroke-linejoin="round"/></svg>
+                            </div>
+                            <div class="space-y-2 min-w-0">
+                                <label class="btn-secondary cursor-pointer">
+                                    <span x-text="preview && !removed ? 'Change photo' : 'Choose photo'"></span>
+                                    <input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp" class="sr-only"
+                                           @change="const f = $event.target.files[0]; if (f) { preview = URL.createObjectURL(f); removed = false; $refs.remove && ($refs.remove.checked = false) }">
+                                </label>
+                                @if ($product->image_path)
+                                    <label class="flex items-center gap-2 text-xs text-zinc-500">
+                                        <input x-ref="remove" type="checkbox" name="remove_image" value="1" x-model="removed" class="rounded border-zinc-300 text-primary-600 focus:ring-primary-500">
+                                        Remove photo
+                                    </label>
+                                @endif
+                            </div>
+                        </div>
                     </x-form-row>
                     <x-form-row label="SKU / barcode" for="sku" hint="Must be unique.">
                         <input id="sku" name="sku" value="{{ old('sku', $product->sku) }}" maxlength="100" class="input" style="max-width:16rem">

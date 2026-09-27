@@ -43,8 +43,13 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3">
                     <template x-for="p in filtered" :key="p.id">
                         <button type="button" @click="add(p)"
-                                class="group text-left bg-white rounded-xl p-3 sm:p-3.5 ring-1 ring-zinc-200/80 shadow-sm hover:ring-primary-300 hover:shadow active:scale-[.98] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex flex-col min-h-[6.5rem]"
+                                class="group text-left bg-white rounded-xl ring-1 ring-zinc-200/80 shadow-sm hover:ring-primary-300 hover:shadow active:scale-[.98] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex flex-col overflow-hidden"
                                 :class="p.track && left(p) <= 0 ? 'opacity-60' : ''">
+                            <span class="block aspect-[4/3] bg-zinc-100 overflow-hidden" x-show="hasImages" aria-hidden="true">
+                                <template x-if="p.image"><img :src="p.image" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform"></template>
+                                <template x-if="!p.image"><span class="w-full h-full flex items-center justify-center font-display text-3xl text-zinc-300" x-text="p.name.charAt(0).toUpperCase()"></span></template>
+                            </span>
+                            <span class="p-3 sm:p-3.5 flex flex-col flex-1 min-h-[6.5rem]">
                             <span class="text-sm font-medium leading-snug text-zinc-900 line-clamp-2" x-text="p.name"></span>
                             <span class="text-xs text-zinc-400 mt-0.5 truncate" x-show="p.sku" x-text="p.sku"></span>
                             <span class="mt-auto pt-2 flex items-end justify-between gap-2">
@@ -56,6 +61,7 @@
                                       x-show="p.track"
                                       :class="left(p) <= 0 ? 'bg-primary-50 text-primary-700' : 'bg-zinc-100 text-zinc-500'"
                                       x-text="left(p) <= 0 ? 'Out' : left(p) + (p.unit ? ' ' + p.unit : '')"></span>
+                            </span>
                             </span>
                         </button>
                     </template>

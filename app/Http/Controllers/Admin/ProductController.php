@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\PurchaseItem;
 use App\Models\Unit;
 use App\Models\Warehouse;
+use App\Services\ProductImageService;
 use App\Services\StockService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -51,9 +52,12 @@ class ProductController extends Controller
         ])));
     }
 
-    public function store(Request $request, StockService $stock): RedirectResponse
+    public function store(Request $request, StockService $stock, ProductImageService $images): RedirectResponse
     {
         $data = $this->validated($request);
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $images->store($request->file('image'));
+        }
         $opening = $request->validate([
             'opening_stock' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'opening_warehouse_id' => ['nullable', 'required_with:opening_stock', Rule::exists('warehouses', 'id')->where('is_active', true)],
@@ -82,9 +86,19 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product, ProductImageService $images): RedirectResponse
     {
-        $product->update($this->validated($request, $product));
+        $data = $this->validated($request, $product);
+
+        if ($request->hasFile('image')) {
+            $images->delete($product->image_path);
+            $data['image_path'] = $images->store($request->file('image'));
+        } elseif ($request->boolean('remove_image')) {
+            $images->delete($product->image_path);
+            $data['image_path'] = null;
+        }
+
+        $product->update($data);
 
         return redirect()->route('admin.products.edit', $product)->with('status', "Product \"{$product->name}\" updated.");
     }
@@ -100,6 +114,7 @@ class ProductController extends Controller
         }
 
         $product->delete();
+        app(ProductImageService::class)->delete($product->image_path);
 
         return redirect()->route('admin.products.index')->with('status', "Product \"{$product->name}\" deleted.");
     }
@@ -124,6 +139,7 @@ class ProductController extends Controller
             'brand_id' => ['nullable', 'exists:brands,id'],
             'unit_id' => ['nullable', 'exists:units,id'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'regular_price' => ['nullable', 'numeric', 'min:0', 'max:99999999', 'gte:base_price'],
@@ -133,7 +149,12 @@ class ProductController extends Controller
             'sku.unique' => 'Another product already uses this SKU.',
             'base_price.required' => 'Enter the sale price.',
             'regular_price.gte' => 'The regular price should be the same as or higher than the sale price.',
+            'image.image' => 'Choose a photo (JPG, PNG or WebP).',
+            'image.mimes' => 'Choose a JPG, PNG or WebP photo.',
+            'image.max' => 'The photo must be 4 MB or smaller.',
         ]);
+
+        unset($data['image']);
 
         return $data + [
             'purchase_price' => $data['purchase_price'] ?? 0,

@@ -2,6 +2,11 @@
 
 ## 2.0.1
 
+- **Product photos**: upload a JPG/PNG/WebP (up to 4 MB) on the product
+  form, with preview, replace and remove. With PHP GD available, photos are
+  shrunk to 800px WebP. Stored in `public/uploads/products` (no
+  `storage:link` needed on shared hosting). Shown in the product list and on
+  the register cards (letter tile when a product has no photo).
 - **Customers & credit sales**: customer records (phone, address, credit
   limit) with an account page showing a running balance. At the register,
   pick or quick-add a customer (F4) and sell on "Pay later" with an optional

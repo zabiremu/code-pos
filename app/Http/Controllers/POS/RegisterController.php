@@ -37,7 +37,7 @@ class RegisterController extends Controller
         $products = Product::with('unit:id,short_name')
             ->where('is_available', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'sku', 'category_id', 'unit_id', 'base_price', 'regular_price', 'tax_rate', 'track_stock', 'stock_quantity'])
+            ->get(['id', 'name', 'sku', 'image_path', 'category_id', 'unit_id', 'base_price', 'regular_price', 'tax_rate', 'track_stock', 'stock_quantity'])
             ->map(fn (Product $p) => [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -49,6 +49,7 @@ class RegisterController extends Controller
                 'track' => (bool) $p->track_stock,
                 'stock' => (float) $p->stock_quantity,
                 'unit' => $p->unit?->short_name,
+                'image' => $p->imageUrl(),
             ]);
 
         $categoryIds = $products->pluck('category_id')->filter()->unique();

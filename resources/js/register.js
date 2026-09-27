@@ -62,6 +62,11 @@ export default function register({ products = [], defaultTax = 0, oldTendered = 
             return this.products.find((p) => p.id === id);
         },
 
+        /** Show the photo area only once at least one product has a photo, so a shop without photos keeps compact cards. */
+        get hasImages() {
+            return this.products.some((p) => p.image);
+        },
+
         get filtered() {
             const q = this.search.trim().toLowerCase();
             return this.products.filter((p) =>

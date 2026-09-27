@@ -65,6 +65,12 @@ class Product extends Model
         return $this->hasMany(WarehouseStock::class);
     }
 
+    /** asset() follows the current host, so a wrong APP_URL in .env can't break images. */
+    public function imageUrl(): ?string
+    {
+        return $this->image_path ? asset('uploads/'.$this->image_path) : null;
+    }
+
     public function isLowStock(): bool
     {
         return $this->track_stock && $this->stock_quantity <= $this->low_stock_threshold;
