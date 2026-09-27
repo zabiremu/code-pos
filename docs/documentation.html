@@ -102,9 +102,13 @@
     <h2>Installation</h2>
     <h3>Option A — Web installer (recommended for shared hosting, no command line)</h3>
     <ol>
-      <li>Upload the contents of the package to your hosting account.</li>
-      <li>Point your domain's document root at the <code>public/</code> folder. If your host doesn't let you change the document root, leave the project at the account root — the bundled root-level <code>.htaccess</code> routes requests into <code>public/</code> automatically.</li>
-      <li>Visit your domain in a browser. You'll land on the installer's welcome screen.</li>
+      <li>Upload the contents of the package's <code>main-files/pos/</code> folder to your hosting account, in one of these two ways:
+        <ul>
+          <li><strong>Recommended — point the domain at <code>public/</code>.</strong> Upload the folder somewhere outside <code>public_html</code> (e.g. <code>/home/you/pos</code>), then in cPanel set the domain's (or subdomain's) <em>Document Root</em> to <code>/home/you/pos/public</code>. Only the public folder is ever reachable from the web.</li>
+          <li><strong>Supported — upload everything into <code>public_html</code></strong> (or a subfolder such as <code>public_html/pos</code>, reached at <code>example.com/pos/</code>). Use this when you can't change the document root. The bundled root <code>.htaccess</code> serves the app from <code>public/</code> without <code>/public</code> ever appearing in the address bar, and blocks the files that must stay private (<code>.env</code>, <code>storage/</code>, <code>vendor/</code>, <code>config/</code>, logs and so on). Make sure hidden files (<code>.htaccess</code>, <code>.env.example</code>) were uploaded too — some FTP clients skip them.</li>
+        </ul>
+      </li>
+      <li>Visit your domain (or <code>example.com/pos/</code>) in a browser. You'll land on the installer's welcome screen.</li>
       <li><strong>Requirements</strong> — confirms PHP version, required extensions, and folder permissions.</li>
       <li><strong>Purchase code</strong> — enter the purchase code from your CodeCanyon Downloads page. One Regular License covers one live domain; installs on localhost or a local network don't count. To move to a new domain later, use <em>Settings → License → Deactivate on this domain</em> on the old site first.</li>
       <li><strong>Database</strong> — enter your MySQL host, port, database name, username, and password. The installer tests the connection, writes your <code>.env</code>, then runs migrations and seeds a demo admin account and sample catalog automatically.</li>
@@ -181,7 +185,11 @@ php artisan migrate --force
     <h3>"I need to re-run the installer"</h3>
     <p>The installer locks itself after a successful run by creating <code>storage/installed.lock</code>. Delete that file to unlock it — only do this on a fresh install, since re-running migrate/seed against a live database is not intended.</p>
     <h3>"My URLs show /public/ in them"</h3>
-    <p>Point your hosting account's document root at the <code>public/</code> folder. If your host doesn't allow that, leave the project where it is — the included root <code>.htaccess</code> already redirects transparently, so no further action is needed.</p>
+    <p>Open the site at <code>example.com/</code> (or <code>example.com/pos/</code>), not <code>example.com/public/</code> — the root <code>.htaccess</code> handles the rest. If <code>example.com/</code> shows a file listing or a 404, the root <code>.htaccess</code> is missing (re-upload it; it's a hidden file) or your host doesn't allow <code>.htaccess</code> overrides, in which case point the document root at <code>public/</code> instead.</p>
+    <h3>"Pages only work as example.com/index.php/login"</h3>
+    <p>Your server has no <code>mod_rewrite</code>. The app still works this way (links include <code>index.php</code> automatically), but ask your host to enable <code>mod_rewrite</code> for clean URLs. On Nginx, point the site at <code>public/</code> — Nginx doesn't read <code>.htaccess</code> files, so the protection rules in them don't apply there.</p>
+    <h3>"Is my .env file safe?"</h3>
+    <p>Check from any computer: <code>curl -I https://example.com/.env</code> must answer <code>403</code> or <code>404</code>. Do the same for <code>/storage/logs/laravel.log</code>, <code>/composer.json</code> and <code>/vendor/autoload.php</code>. If any of them downloads, the root <code>.htaccess</code> isn't being applied — fix that (or point the domain at <code>public/</code>) before going live.</p>
     <h3>"A blank page or 500 error on a fresh upload"</h3>
     <p>This almost always means <code>vendor/</code> is missing. If <code>storage/</code>, <code>bootstrap/cache</code> or <code>.env</code> aren't writable, you'll instead see a page listing exactly which paths need their permissions changed. See Installation above.</p>
     <h3>"Every page sends me to /install on a site that's already installed"</h3>

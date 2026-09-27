@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\WebRoot;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
@@ -12,6 +13,10 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
+
+// When the whole project sits in the web root or a subfolder (the root
+// .htaccess rewrites into public/), make URLs come out without "/public".
+$_SERVER = WebRoot::normalize($_SERVER);
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */

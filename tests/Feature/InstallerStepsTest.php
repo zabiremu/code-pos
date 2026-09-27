@@ -157,6 +157,40 @@ class InstallerStepsTest extends TestCase
         $this->get(route('install.finish'))->assertNotFound();
     }
 
+    /** @return array<string, string> server vars for the project uploaded into /pos */
+    private function inSubfolder(string $uri, bool $rewrite = true): array
+    {
+        [$server] = $rewrite
+            ? [\App\Support\WebRoot::normalize(['SCRIPT_NAME' => '/pos/public/index.php', 'REQUEST_URI' => $uri])]
+            : \App\Support\WebRoot::withoutRewrite(['SCRIPT_NAME' => '/pos/index.php', 'REQUEST_URI' => $uri]);
+
+        return ['SCRIPT_NAME' => $server['SCRIPT_NAME'], 'PHP_SELF' => $server['SCRIPT_NAME'], 'SCRIPT_FILENAME' => base_path('index.php')];
+    }
+
+    public function test_finish_in_a_subfolder_writes_the_subfolder_app_url(): void
+    {
+        Artisan::shouldReceive('call')->times(3);
+
+        $this->withServerVariables($this->inSubfolder('/pos/install/finish'))
+            ->withSession(['install.database_done' => true])
+            ->get('/pos/install/finish')
+            ->assertOk();
+
+        $this->assertStringContainsString("APP_URL=http://localhost/pos\n", File::get($this->dir.'/.env'));
+    }
+
+    public function test_finish_without_mod_rewrite_leaves_index_php_out_of_app_url(): void
+    {
+        Artisan::shouldReceive('call')->times(3);
+
+        $this->withServerVariables($this->inSubfolder('/pos/index.php/install/finish', rewrite: false))
+            ->withSession(['install.database_done' => true])
+            ->get('/pos/index.php/install/finish')
+            ->assertOk();
+
+        $this->assertStringContainsString("APP_URL=http://localhost/pos\n", File::get($this->dir.'/.env'));
+    }
+
     public function test_not_installed_app_redirects_visitors_to_the_installer(): void
     {
         config(['app.installer_redirect' => true]);

@@ -1,20 +1,67 @@
-# Only needed when your hosting's Document Root points at this project's
-# root folder instead of its `public/` subfolder (common on shared hosting
-# where you can't — or don't want to — change the Document Root setting).
-# It transparently routes every request into public/ so URLs never show
-# "/public/" in them, e.g. https://yourdomain.com/login instead of
-# https://yourdomain.com/public/login.
+# Used when the whole project is uploaded into public_html (or a subfolder
+# such as public_html/pos) instead of pointing the domain at public/.
+# Visitors use example.com/login - never example.com/public/login - and
+# nothing outside public/ is ever served.
 #
-# If your Document Root is already set to this project's public/ folder,
-# this file is inert and can be deleted — public/.htaccess handles routing
-# on its own in that setup.
+# If your domain already points at this project's public/ folder (the
+# recommended setup), this file is never read and does no harm.
+
+Options -Indexes
+
+# ---------------------------------------------------------------------------
+# 1. Sensitive files: denied by name, wherever they are (e.g. storage/logs).
+#    Checked before any rewrite, and needs no mod_rewrite.
+# ---------------------------------------------------------------------------
+<FilesMatch "(?i)(^\.env|^\.git|^composer\.(json|lock)$|^package(-lock)?\.json$|^artisan$|^phpunit\.xml|\.log$|\.sqlite$|\.sql$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Already inside /public/ (or requesting a file that lives there
-    # directly, e.g. /public/build/assets/app.js) - don't rewrite again.
-    RewriteCond %{REQUEST_URI} !^/public/
+    # -----------------------------------------------------------------------
+    # 2. Project folders: 404, matched from this folder down, so it also works
+    #    in a subfolder and never catches app URLs like /install/database.
+    # -----------------------------------------------------------------------
+    RewriteRule ^(\.git|app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [R=404,L]
+    RewriteRule (^|/)\.env - [R=404,L]
 
-    RewriteRule ^(.*)$ /public/$1 [L]
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Drop trailing slashes here, before the request moves into public/,
+    # so the redirect never shows "/public".
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Old links that include /public/ keep working.
+    RewriteRule ^public(/|$) - [L]
+
+    # 3. Everything else is served from public/ without changing the URL.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# No mod_rewrite: index.php in this folder takes over (pages become
+# /index.php/login). Only it and static files may be requested; everything
+# else - config, vendor code, sessions, uploads' neighbours - is denied.
+# ---------------------------------------------------------------------------
+<IfModule !mod_rewrite.c>
+    DirectoryIndex index.php
+    <IfModule mod_authz_core.c>
+        <FilesMatch ".">
+            Require all denied
+        </FilesMatch>
+        <FilesMatch "(?i)^(index\.php|.+\.(css|js|map|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|eot|otf))$">
+            Require all granted
+        </FilesMatch>
+    </IfModule>
 </IfModule>

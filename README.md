@@ -110,14 +110,56 @@ can't be hit directly to lock the owner out.
 
 ### Shared hosting: no "/public/" in the URL
 
-If your host's Document Root points at this project's root folder instead of
-its `public/` subfolder (common on cPanel shared hosting, and not always
-something you can change), the repo ships a root-level `.htaccess` that
-transparently routes every request into `public/` at the web-server level —
-so `https://yourdomain.com/login` works instead of
-`https://yourdomain.com/public/login`, with no Document Root change needed.
-If your Document Root *is* already set to `public/`, this file is inert and
-safe to leave in place (or delete).
+Three layouts are supported; the first is recommended:
+
+| Layout | Pages | Assets |
+|---|---|---|
+| Domain points at `public/` | `example.com/login` | `example.com/build/…` |
+| Whole project in `public_html/` | `example.com/login` | `example.com/build/…` |
+| Whole project in `public_html/pos/` | `example.com/pos/login` | `example.com/pos/build/…` |
+
+For the last two, the root-level `.htaccess` rewrites every request into
+`public/` without changing the URL, and `public/index.php` runs
+`App\Support\WebRoot::normalize()` so Laravel's base URL is `/` or `/pos`
+rather than `/public` (without it, a subfolder install 404s on every page).
+Old links containing `/public/` keep working.
+
+The root `.htaccess` also blocks everything outside `public/`:
+
+- **By file name, anywhere** (`FilesMatch`, checked before any rewrite, no
+  mod_rewrite needed): `.env*`, `.git*`, `composer.json/lock`,
+  `package(-lock).json`, `artisan`, `phpunit.xml*`, `*.log`, `*.sqlite`, `*.sql`.
+- **By folder** (anchored at the project root, so it works in a subfolder and
+  never matches app URLs like `/install/database`): `.git`, `app`,
+  `bootstrap`, `config`, `database`, `resources`, `routes`, `storage`,
+  `tests`, `vendor`.
+
+Hosts without mod_rewrite fall back to the root `index.php`: pages become
+`example.com/index.php/login` (Laravel builds those links itself), assets load
+from `/public/…`, and the `.htaccess` switches to a whitelist — only
+`index.php` and static files (css, js, images, fonts) can be requested.
+Nginx ignores `.htaccess` entirely, so on Nginx always point the site at
+`public/`.
+
+If your Document Root *is* already set to `public/`, the root files are never
+used for routing and are safe to leave in place.
+
+#### Manual check after deploying
+
+Every one of these must print `403` or `404` (swap in your URL, including any
+subfolder):
+
+```bash
+for p in /.env /.env.example /composer.json /composer.lock /artisan \
+         /storage/logs/laravel.log /vendor/autoload.php /config/app.php /.git/config; do
+  printf '%-28s %s\n' "$p" "$(curl -s -o /dev/null -w '%{http_code}' "https://example.com$p")"
+done
+```
+
+And these must print `200`: `https://example.com/login` and the
+`/build/assets/…css` link from that page's source (no `/public` in either).
+All of the above was checked against Apache 2.4 in all three layouts, with
+and without mod_rewrite.
 
 > `composer install` and `npm run build` have both been run against the
 > pre-pivot (`1.x`, restaurant-specific) version of this repo on a live

@@ -153,7 +153,9 @@ class InstallController extends Controller
         abort_unless(session('install.database_done'), 403, 'Finish the database step first.');
 
         File::put(config('app.installed_lock'), now()->toDateTimeString());
-        $this->writeEnv(['APP_URL' => $request->root()]);
+        // root() keeps a subfolder (http://example.com/pos); drop the "/index.php" it
+        // carries on hosts without mod_rewrite (see the root index.php).
+        $this->writeEnv(['APP_URL' => preg_replace('#/index\.php$#', '', $request->root())]);
 
         foreach (['config:clear', 'route:clear', 'view:clear'] as $command) {
             Artisan::call($command);
