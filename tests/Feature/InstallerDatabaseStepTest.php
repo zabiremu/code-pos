@@ -84,6 +84,17 @@ class InstallerDatabaseStepTest extends TestCase
         $this->assertEnvUntouched();
     }
 
+    public function test_no_access_to_the_database_explains_both_likely_causes(): void
+    {
+        $this->failConnection(1044, "Access denied for user 'shop_user'@'localhost' to database 'shop_pos'");
+
+        $this->submit()
+            ->assertSessionHasErrors(['db_database' => "User 'shop_user' can't open database 'shop_pos'. Check the name is exactly right, that the database exists, and that this user is added to it (cPanel > MySQL Databases > Add User To Database, ALL PRIVILEGES)."])
+            ->assertSessionMissing('install.database_done');
+
+        $this->assertEnvUntouched();
+    }
+
     public function test_access_denied_explains_the_add_user_to_database_step(): void
     {
         $this->failConnection(1045, "Access denied for user 'shop_user'@'localhost' (using password: YES)");
@@ -158,7 +169,7 @@ class InstallerDatabaseStepTest extends TestCase
 
         $this->submit(['db_database' => 'cpuser_POS2', 'db_username' => str_repeat('u', 64)])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('install.finish'));
+            ->assertRedirect(route('install.admin'));
 
         $env = File::get($this->dir.'/.env');
         $this->assertStringContainsString("DB_DATABASE=cpuser_POS2\n", $env);

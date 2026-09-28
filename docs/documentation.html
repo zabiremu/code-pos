@@ -111,8 +111,9 @@
       <li>Visit your domain (or <code>example.com/pos/</code>) in a browser. You'll land on the installer's welcome screen.</li>
       <li><strong>Requirements</strong> — confirms PHP version, required extensions, and folder permissions.</li>
       <li><strong>Purchase code</strong> — enter the purchase code from your CodeCanyon Downloads page. One Regular License covers one live domain; installs on localhost or a local network don't count. To move to a new domain later, use <em>Settings → License → Deactivate on this domain</em> on the old site first.</li>
-      <li><strong>Database</strong> — enter your MySQL host, port, database name, username, and password. The installer tests the connection, writes your <code>.env</code>, then runs migrations and seeds a demo admin account and sample catalog automatically.</li>
-      <li><strong>Finish</strong> — you're shown the demo admin login. <strong>Change that password immediately</strong> from the Profile page after your first login. The installer locks itself shut after this step (see Troubleshooting if you need to re-run it).</li>
+      <li><strong>Database</strong> — enter your MySQL host, port, database name, username, and password. The installer tests the connection, writes your <code>.env</code>, and creates the tables.</li>
+      <li><strong>Admin account</strong> — choose your own name, email and password (at least 8 characters). This is your login. Tick <em>Add sample products</em> if you'd like a small demo catalog to try things out; you can delete it later. There is no default or demo login on a real install.</li>
+      <li><strong>Finish</strong> — log in with the account you just created. The installer locks itself shut after this step (see Troubleshooting if you need to re-run it).</li>
     </ol>
     <h3>Option B — Command line (for a VPS or local development)</h3>
     <pre><code>composer install --no-dev --optimize-autoloader
@@ -200,7 +201,7 @@ php artisan migrate --force
     <h2>Security Notes</h2>
     <ul>
       <li>Keep <code>APP_DEBUG=false</code> on any live site — this is the default in <code>.env.example</code>.</li>
-      <li>Change the seeded demo admin password (<code>admin@example.com</code> / <code>password</code>) immediately after installing.</li>
+      <li>Use a strong password for the admin account you create in the installer, and give staff their own Manager or Cashier accounts rather than sharing the admin login.</li>
       <li>Login is rate-limited (5 attempts/minute per email+IP) against brute-force attempts.</li>
       <li>Only an Admin account can create, edit, or remove another Admin account — a Manager cannot escalate their own or anyone else's access.</li>
     </ul>

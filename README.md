@@ -33,8 +33,9 @@ the core flows; see Testing below for how to run it against your own
 - **Role-based access** — three roles (admin, manager, cashier) via
   spatie/laravel-permission, each gated to the routes that role actually
   needs
-- **Web installer** — a five-step wizard (requirements check → Envato
-  purchase-code verification → database setup → done) so a buyer never
+- **Web installer** — a six-step wizard (welcome → requirements check →
+  purchase-code verification → database setup → create your own admin
+  account → done) so a buyer never
   touches the command line; locks itself shut after first run
 - **Employee management & attendance** — a full employee profile screen
   (name/email/phone/branch/role/active-status) alongside the existing
@@ -59,7 +60,9 @@ the core flows; see Testing below for how to run it against your own
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate --seed   # seeds roles, a demo admin (admin@example.com / password), and a sample catalog
+php artisan migrate --seed   # DEV / LIVE DEMO ONLY: roles, a demo admin (admin@example.com / password), sample catalog
+# (The web installer seeds only roles + the default branch via InstallSeeder,
+#  then asks the buyer to create their own admin. No install ships a known login.)
 echo installed > storage/installed.lock   # marks this copy installed - see below
 php artisan serve
 ```
@@ -220,8 +223,10 @@ A quick account of what's actually been checked, not just claimed:
 - **CSRF** — on by default (Laravel's `VerifyCsrfToken` middleware, no
   routes excluded from it) for every state-changing form
 - **Passwords** — hashed via `Hash::make()`/the `password` cast, never
-  stored or logged in plaintext; the seeded demo admin's password is
-  flagged for immediate change on the installer's finish screen
+  stored or logged in plaintext. A real install has no default login: the
+  installer seeds roles only (`InstallSeeder`) and the buyer creates their
+  own admin in the "Admin account" step. The demo admin in
+  `RolesAndAdminSeeder` is only for local dev and the live demo
 - **`.env` writing** — the installer's database step used to build `.env`
   lines with an unescaped `preg_replace()`, which (a) treats `$1`-style
   substrings in a DB password as regex backreferences and silently mangles
