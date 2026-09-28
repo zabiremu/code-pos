@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Install;
 
+use App\Enums\Role as PosRole;
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
+use App\Models\User;
 use App\Services\PurchaseCodeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -11,11 +14,16 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rules\Password;
+use Database\Seeders\DemoProductSeeder;
+use Database\Seeders\InstallSeeder;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * The web-based installer Envato requires in place of manual .sql import +
  * hand-edited .env (see the build plan's compliance checklist). Steps:
- * welcome -> requirements -> purchase code -> database -> migrate/seed -> finish.
+ * welcome -> requirements -> purchase code -> database (migrate + roles) ->
+ * admin account (the buyer's own login, optional sample data) -> finish.
  * Each step is a simple GET (show) / POST (process) pair so it degrades
  * gracefully without any JS framework.
  *
@@ -140,9 +148,15 @@ class InstallController extends Controller
 
         // No key:generate here: APP_KEY was created once before boot, and
         // rotating it now would make the buyer's session cookie unreadable.
+        // InstallSeeder: roles + default branch only. No users - the next
+        // step creates the buyer's own admin, so no install has a known login.
         try {
-            foreach (['migrate', 'db:seed'] as $command) {
-                if (Artisan::call($command, ['--force' => true]) !== 0) {
+            $commands = [
+                'migrate' => ['--force' => true],
+                'db:seed' => ['--class' => InstallSeeder::class, '--force' => true],
+            ];
+            foreach ($commands as $command => $options) {
+                if (Artisan::call($command, $options) !== 0) {
                     throw new \RuntimeException(trim(Artisan::output()) ?: "{$command} failed.");
                 }
             }
@@ -157,12 +171,76 @@ class InstallController extends Controller
 
         $request->session()->put('install.database_done', true);
 
+        return redirect()->route('install.admin');
+    }
+
+    public function showAdmin(): View|RedirectResponse
+    {
+        abort_unless(session('install.database_done'), 403, 'Finish the database step first.');
+
+        if (session('install.admin_done')) {
+            return redirect()->route('install.finish');
+        }
+
+        return view('install.admin');
+    }
+
+    /** Creates the buyer's own admin login (and, if asked, the sample catalog). */
+    public function storeAdmin(Request $request): RedirectResponse
+    {
+        abort_unless(session('install.database_done'), 403, 'Finish the database step first.');
+
+        // A double-submit or back-button must not create a second admin.
+        if (session('install.admin_done')) {
+            return redirect()->route('install.finish');
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+            'sample_data' => ['nullable', 'boolean'],
+        ]);
+
+        // Roles were seeded in the previous request; drop Spatie's cached
+        // (possibly empty) role list so assignRole() can find them.
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $branch = Branch::firstOrCreate(['name' => 'Main Branch'], ['tax_rate' => 0, 'currency' => 'USD', 'is_active' => true]);
+
+        // The model's 'hashed' cast hashes the password; email_verified_at
+        // isn't mass-assignable, hence forceFill.
+        $admin = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'branch_id' => $branch->id,
+            'is_active' => true,
+        ]);
+        $admin->forceFill(['email_verified_at' => now()])->save();
+        $admin->assignRole(PosRole::Admin->value);
+
+        if ($request->boolean('sample_data')) {
+            try {
+                Artisan::call('db:seed', ['--class' => DemoProductSeeder::class, '--force' => true]);
+            } catch (\Throwable $e) {
+                // Sample data is a nice-to-have: the install itself succeeded.
+                report($e);
+            }
+        }
+
+        $request->session()->put('install.admin_done', true);
+        $request->session()->put('install.admin_email', $admin->email);
+
         return redirect()->route('install.finish');
     }
 
     public function finish(Request $request): View
     {
         abort_unless(session('install.database_done'), 403, 'Finish the database step first.');
+        abort_unless(session('install.admin_done'), 403, 'Create your admin account first.');
+
+        $adminEmail = session('install.admin_email');
 
         File::put(config('app.installed_lock'), now()->toDateTimeString());
         // root() keeps a subfolder (http://example.com/pos); drop the "/index.php" it
@@ -175,7 +253,7 @@ class InstallController extends Controller
 
         $request->session()->forget('install');
 
-        return view('install.finish');
+        return view('install.finish', ['adminEmail' => $adminEmail]);
     }
 
     /**
@@ -196,6 +274,10 @@ class InstallController extends Controller
 
         return match (true) {
             $code === 1049 => ['db_database' => "Database '{$db['db_database']}' doesn't exist. Create it first in cPanel > MySQL Databases (or phpMyAdmin), then try again."],
+            // cPanel users only see their own databases, so a typo'd or
+            // not-yet-created name, or a user not added to it, comes back as
+            // 1044 rather than 1049.
+            $code === 1044 => ['db_database' => "User '{$db['db_username']}' can't open database '{$db['db_database']}'. Check the name is exactly right, that the database exists, and that this user is added to it (cPanel > MySQL Databases > Add User To Database, ALL PRIVILEGES)."],
             $code === 1045 => ['db_username' => "Username or password is wrong, or this user isn't added to the database (cPanel > MySQL Databases > Add User To Database, ALL PRIVILEGES)."],
             in_array($code, [2002, 2003, 2005], true) || stripos($message, 'connection refused') !== false => [
                 'db_host' => "Can't reach the MySQL server at {$db['db_host']}:{$db['db_port']}. On cPanel the host is usually 'localhost'.",
