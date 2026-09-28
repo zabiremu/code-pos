@@ -31,6 +31,23 @@ class RegisterTest extends TestCase
             ->assertDontSee('Hidden thing');
     }
 
+    public function test_register_is_wired_for_keyboard_only_selling(): void
+    {
+        $this->actingAs($this->staff('cashier'))
+            ->get(route('pos.register'))
+            ->assertOk()
+            // The key handlers the JS relies on (tests/js/register-keyboard.test.mjs covers the behaviour).
+            ->assertSee('searchKeys($event)', false)
+            ->assertSee('qtyKeys($event, line)', false)
+            ->assertSee('discountKeys($event)', false)
+            ->assertSee('customerKeys($event)', false)
+            // Payment methods are passed in so PgUp/PgDn can cycle them.
+            ->assertSee('methods: '.\Illuminate\Support\Js::from(array_keys(\App\Http\Controllers\POS\RegisterController::METHODS)), false)
+            // The shortcut list a cashier gets with ? or F1.
+            ->assertSee('Keyboard shortcuts')
+            ->assertSee('Add the scanned or highlighted product');
+    }
+
     public function test_cash_checkout_saves_everything_in_one_go(): void
     {
         Branch::create(['name' => 'Main', 'tax_rate' => 5, 'currency' => 'BDT', 'is_active' => true]);

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShopPulse POS — Documentation</title>
 <style>
+  kbd { font: 600 .8em/1 ui-monospace, SFMono-Regular, Menlo, monospace; background: #f4f4f5; border: 1px solid #d4d4d8; border-bottom-width: 2px; border-radius: 4px; padding: .15em .4em; white-space: nowrap; }
+  table.keys { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .95em; }
+  table.keys th { text-align: left; padding: .9rem 0 .35rem; font-size: .8em; text-transform: uppercase; letter-spacing: .04em; color: #71717a; }
+  table.keys td { padding: .35rem .75rem .35rem 0; border-top: 1px solid #f0f0f0; vertical-align: top; }
+  table.keys td:first-child { width: 11rem; }
   :root{
     --primary:#b91c1c; --primary-dark:#7f1d1d; --ink:#1f2937; --muted:#6b7280;
     --bg:#ffffff; --panel:#f9fafb; --border:#e5e7eb; --code-bg:#18181b; --code-ink:#e4e4e7;
@@ -66,6 +71,7 @@
   <h2>Using the App</h2>
   <a href="#roles">Roles &amp; Permissions</a>
   <a href="#features">Feature Walkthrough</a>
+  <a href="#keyboard">Selling with the Keyboard</a>
   <h2>Reference</h2>
   <a href="#updating">Updating</a>
   <a href="#troubleshooting">Troubleshooting</a>
@@ -160,6 +166,29 @@ echo installed &gt; storage/installed.lock
     <h3>Sales</h3>
     <p>Open a sale, add products with quantity/notes, and remove a line at any time before it's billed. Stock (for any product with tracking enabled) is deducted the moment an item is added, and restored if it's removed again.</p>
     <div class="placeholder-shot">Screenshot: Sale screen with items and totals</div>
+    <h3 id="keyboard">Selling with the Keyboard</h3>
+    <p>The register works without a mouse or touch screen. A USB or Bluetooth barcode scanner works out of the box: it types the code and presses Enter, which adds the product. Press <kbd>?</kbd> on the register at any time to see this list.</p>
+    <table class="keys">
+      <tr><th colspan="2">Find &amp; add</th></tr>
+      <tr><td><kbd>F2</kbd> or <kbd>/</kbd></td><td>Go to the search box</td></tr>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Highlight a search result</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Add the scanned or highlighted product. A scanned code that isn't a product shows a message and adds nothing.</td></tr>
+      <tr><td><kbd>3*</kbd>code</td><td>Type a quantity and <kbd>*</kbd> before the code or name to add several at once</td></tr>
+      <tr><th colspan="2">Current sale (with the search box empty)</th></tr>
+      <tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>One more / one less of the highlighted line (the last one added)</td></tr>
+      <tr><td><kbd>Delete</kbd></td><td>Remove the highlighted line</td></tr>
+      <tr><td><kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Highlight the previous / next line</td></tr>
+      <tr><td><kbd>F3</kbd></td><td>Type an exact quantity for the highlighted line, then <kbd>Enter</kbd></td></tr>
+      <tr><td><kbd>F8</kbd></td><td>Discount. Press <kbd>%</kbd> in the box to switch between amount and percent</td></tr>
+      <tr><td><kbd>F4</kbd></td><td>Choose a customer: type to search, <kbd>↑</kbd> <kbd>↓</kbd> and <kbd>Enter</kbd></td></tr>
+      <tr><th colspan="2">Pay</th></tr>
+      <tr><td><kbd>F9</kbd></td><td>Open payment</td></tr>
+      <tr><td><kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Switch payment method (Cash, Card, Mobile pay, Other, and Pay later when a customer is chosen)</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Complete the sale. Leave the cash box empty for the exact amount</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>P</kbd></td><td>On the receipt: start the next sale / print</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close a window and go back to search</td></tr>
+    </table>
+    <p>A typical sale: scan the items (or type and press <kbd>Enter</kbd>), press <kbd>F9</kbd>, type the cash received, press <kbd>Enter</kbd>, then <kbd>Enter</kbd> again for the next customer.</p>
     <h3>Billing</h3>
     <p>Generate a bill for all or a subset of a sale's items (split billing), apply a percent or fixed discount, add a service-charge percentage, and record one or more payments (cash, card, mobile wallet, other) — the bill's status updates to paid/partially paid automatically as payments come in.</p>
     <div class="placeholder-shot">Screenshot: Bill / payment screen</div>

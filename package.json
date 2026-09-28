@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "test:js": "node tests/js/register-keyboard.test.mjs"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.19",

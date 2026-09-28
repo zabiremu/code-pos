@@ -1,11 +1,12 @@
 {{--
     The register. Left: find products (search / scan / category / tap).
     Right (bottom sheet on phones): the cart, totals and Pay.
-    Logic: resources/js/register.js. Keys: F2 or / search, F9 pay, Esc back.
+    Logic: resources/js/register.js. A whole sale works from the keyboard or a
+    barcode scanner; press ? on the page for the shortcut list.
 --}}
 @php $cur = $currency ? $currency.' ' : ''; @endphp
 <x-layouts.register title="Register">
-    <div class="h-full flex" x-data="register({ products: @js($products), defaultTax: @js($defaultTax), oldTendered: @js(old('tendered')), customers: @js($customers), storeCustomerUrl: @js(route('pos.register.customers.store')) })"
+    <div class="h-full flex" x-data="register({ products: @js($products), defaultTax: @js($defaultTax), oldTendered: @js(old('tendered')), customers: @js($customers), storeCustomerUrl: @js(route('pos.register.customers.store')), methods: @js(array_keys($methods)) })"
          @keydown.window="keys($event)">
 
         {{-- ============================== Products ============================== --}}
@@ -20,7 +21,9 @@
                 <form @submit.prevent="submitSearch()" class="relative" role="search">
                     <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
                     <input x-ref="search" x-model="search" type="search" inputmode="search" autocomplete="off" aria-label="Search products or scan a barcode"
-                           placeholder="Search or scan barcode"
+                           @keydown="searchKeys($event)" @focus="searchFocused = true" @blur="searchFocused = false"
+                           aria-describedby="register-keys"
+                           placeholder="Search or scan barcode (3*code adds 3)"
                            class="w-full h-12 rounded-xl border border-zinc-300 bg-white pl-11 pr-14 text-base shadow-sm placeholder:text-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20">
                     <kbd class="hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5">F2</kbd>
                 </form>
@@ -41,10 +44,11 @@
 
             <div class="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 lg:pb-4">
                 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3">
-                    <template x-for="p in filtered" :key="p.id">
-                        <button type="button" @click="add(p)"
+                    <template x-for="(p, i) in filtered" :key="p.id">
+                        <button type="button" @click="add(p); focusSearch()" :data-result="i"
                                 class="group text-left bg-white rounded-xl ring-1 ring-zinc-200/80 shadow-sm hover:ring-primary-300 hover:shadow active:scale-[.98] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex flex-col overflow-hidden"
-                                :class="p.track && left(p) <= 0 ? 'opacity-60' : ''">
+                                :class="[p.track && left(p) <= 0 ? 'opacity-60' : '', searchFocused && i === active ? 'ring-2 !ring-primary-500 shadow' : '']"
+                                :aria-current="searchFocused && i === active ? 'true' : null">
                             <span class="block aspect-[4/3] bg-zinc-100 overflow-hidden" x-show="hasImages" aria-hidden="true">
                                 <template x-if="p.image"><img :src="p.image" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform"></template>
                                 <template x-if="!p.image"><span class="w-full h-full flex items-center justify-center font-display text-3xl text-zinc-300" x-text="p.name.charAt(0).toUpperCase()"></span></template>
@@ -109,7 +113,8 @@
 
             <ul class="flex-1 overflow-y-auto divide-y divide-zinc-100 min-h-[8rem]">
                 <template x-for="line in cart" :key="line.id">
-                    <li class="px-4 py-3">
+                    <li class="px-4 py-3 transition-colors" :data-line="line.id"
+                        :class="cart.length > 1 && selectedLine === line ? 'bg-primary-50/60 shadow-[inset_3px_0_0_theme(colors.primary.600)]' : ''">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="text-sm font-medium leading-snug" x-text="byId(line.id)?.name"></p>
@@ -121,7 +126,8 @@
                         <div class="mt-2 flex items-center justify-between">
                             <div class="inline-flex items-center rounded-lg ring-1 ring-zinc-200 overflow-hidden">
                                 <button type="button" @click="dec(line)" class="w-9 h-9 flex items-center justify-center text-zinc-600 hover:bg-zinc-100" :aria-label="'One less ' + byId(line.id)?.name">&minus;</button>
-                                <input type="number" min="1" inputmode="numeric" :value="line.qty" @change="setQty(line, $event.target.value)" @focus="$event.target.select()"
+                                <input type="number" min="1" inputmode="numeric" :value="line.qty" @change="setQty(line, $event.target.value)" @focus="$event.target.select(); selected = line.id"
+                                       :data-qty-for="line.id" @keydown="qtyKeys($event, line)"
                                        class="w-12 h-9 text-center text-sm tabular-nums border-x border-zinc-200 focus:outline-none focus:bg-primary-50" :aria-label="'Quantity of ' + byId(line.id)?.name">
                                 <button type="button" @click="inc(line)" class="w-9 h-9 flex items-center justify-center text-zinc-600 hover:bg-zinc-100" :aria-label="'One more ' + byId(line.id)?.name">+</button>
                             </div>
@@ -130,7 +136,7 @@
                     </li>
                 </template>
                 <li x-show="!cart.length" class="px-6 py-12 text-center text-sm text-zinc-500">
-                    Tap a product, or scan a barcode, to start the sale.
+                    Scan a barcode, type to search, or tap a product to start the sale.
                 </li>
             </ul>
 
@@ -138,11 +144,12 @@
                 <div class="flex justify-between"><span class="text-zinc-500">Subtotal</span><span class="tabular-nums" x-text="money(subtotal)"></span></div>
                 <div class="flex justify-between"><span class="text-zinc-500">Tax</span><span class="tabular-nums" x-text="money(tax)"></span></div>
                 <div class="flex items-center justify-between gap-2">
-                    <button type="button" @click="showDiscount = !showDiscount; $nextTick(() => $refs.discount?.focus())" class="text-zinc-500 hover:text-primary-600 underline decoration-dotted underline-offset-4">Discount</button>
+                    <button type="button" @click="showDiscount ? (showDiscount = false) : openDiscount()" class="text-zinc-500 hover:text-primary-600 underline decoration-dotted underline-offset-4">Discount <kbd class="hidden sm:inline text-[10px] text-zinc-400 border border-zinc-200 rounded px-1 no-underline">F8</kbd></button>
                     <span class="tabular-nums" :class="discount > 0 ? 'text-emerald-700' : 'text-zinc-400'" x-text="discount > 0 ? '−' + money(discount) : 'None'"></span>
                 </div>
                 <div x-show="showDiscount" x-cloak class="flex items-center gap-2 pt-1">
-                    <input x-ref="discount" x-model="discountInput" type="number" min="0" step="0.01" placeholder="0" aria-label="Discount" class="input h-9 text-right">
+                    <input x-ref="discount" x-model="discountInput" type="number" min="0" step="0.01" placeholder="0" aria-label="Discount (press % to switch between amount and percent)" class="input h-9 text-right"
+                           @keydown="discountKeys($event)">
                     <div class="inline-flex rounded-lg ring-1 ring-zinc-300 overflow-hidden shrink-0 text-sm" role="group" aria-label="Discount type">
                         <button type="button" @click="discountMode = 'amount'" :aria-pressed="discountMode === 'amount'" :class="discountMode === 'amount' ? 'bg-primary-600 text-white' : 'bg-white text-zinc-600'" class="px-3 h-9">{{ $currency ?: 'Amt' }}</button>
                         <button type="button" @click="discountMode = 'percent'" :aria-pressed="discountMode === 'percent'" :class="discountMode === 'percent' ? 'bg-primary-600 text-white' : 'bg-white text-zinc-600'" class="px-3 h-9">%</button>
@@ -160,6 +167,13 @@
                     Pay <span class="tabular-nums" x-text="money(total)"></span>
                     <kbd class="hidden sm:inline text-[11px] font-normal opacity-70 border border-white/30 rounded px-1.5 py-0.5 ml-1">F9</kbd>
                 </button>
+                <p id="register-keys" class="hidden lg:flex flex-wrap gap-x-3 gap-y-1 justify-center mt-3 text-[11px] text-zinc-400">
+                    <span><kbd class="font-sans">↑↓</kbd> pick</span>
+                    <span><kbd class="font-sans">Enter</kbd> add</span>
+                    <span><kbd class="font-sans">+ −</kbd> qty</span>
+                    <span><kbd class="font-sans">Del</kbd> remove</span>
+                    <button type="button" @click="helpOpen = true" class="underline underline-offset-2 hover:text-primary-600">All shortcuts <kbd class="font-sans">?</kbd></button>
+                </p>
             </div>
         </aside>
 
@@ -203,6 +217,7 @@
                 </div>
 
                 <div class="p-5 space-y-4">
+                    <p class="hidden sm:block text-[11px] text-zinc-400 -mb-2">Payment method &middot; <kbd class="font-sans">PgUp</kbd>/<kbd class="font-sans">PgDn</kbd> to switch &middot; <kbd class="font-sans">Enter</kbd> completes (empty cash = exact)</p>
                     <div class="grid grid-cols-2 gap-2" :class="customer ? 'sm:grid-cols-5' : 'sm:grid-cols-4'" role="radiogroup" aria-label="Payment method">
                         @foreach ($methods as $key => $label)
                             <button type="button" role="radio" @click="pickMethod('{{ $key }}')" :aria-checked="method === '{{ $key }}'"
@@ -269,15 +284,17 @@
                 </div>
                 <div class="px-5">
                     <input x-ref="customerSearch" x-model="customerSearch" type="search" placeholder="Search name or phone" aria-label="Search customers" class="input h-11"
-                           @keydown.enter.prevent="customerMatches.length === 1 && chooseCustomer(customerMatches[0])">
+                           @keydown="customerKeys($event)">
                 </div>
                 <ul class="flex-1 overflow-y-auto mt-3 border-t border-zinc-100 divide-y divide-zinc-100 min-h-[6rem]">
                     <li>
-                        <button type="button" @click="chooseCustomer(null)" class="w-full text-left px-5 py-3 hover:bg-zinc-50 text-sm" :class="!customer ? 'font-semibold text-primary-700' : 'text-zinc-600'">Walk-in customer (no account)</button>
+                        <button type="button" @click="chooseCustomer(null)" data-customer-row="0" class="w-full text-left px-5 py-3 hover:bg-zinc-50 text-sm"
+                                :class="[!customer ? 'font-semibold text-primary-700' : 'text-zinc-600', customerActive === 0 ? 'bg-zinc-100' : '']">Walk-in customer (no account)</button>
                     </li>
-                    <template x-for="c in customerMatches" :key="c.id">
+                    <template x-for="(c, i) in customerMatches" :key="c.id">
                         <li>
-                            <button type="button" @click="chooseCustomer(c)" class="w-full text-left px-5 py-3 hover:bg-zinc-50 flex justify-between gap-3" :class="customer?.id === c.id ? 'bg-primary-50/60' : ''">
+                            <button type="button" @click="chooseCustomer(c)" :data-customer-row="i + 1" class="w-full text-left px-5 py-3 hover:bg-zinc-50 flex justify-between gap-3"
+                                    :class="[customer?.id === c.id ? 'bg-primary-50/60' : '', customerActive === i + 1 ? '!bg-zinc-100' : '']">
                                 <span class="text-sm font-medium truncate" x-text="c.name"></span>
                                 <span class="text-sm text-zinc-500 tabular-nums shrink-0" x-text="c.phone ?? ''"></span>
                             </button>
@@ -294,6 +311,63 @@
                     <p x-show="customerError" x-text="customerError" class="text-sm text-primary-600"></p>
                     <button class="btn-primary w-full">Add and select</button>
                 </form>
+            </div>
+        </div>
+
+        {{-- ============================== Shortcuts (? or F1) ============================== --}}
+        <div x-show="helpOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="keys-title">
+            <div class="absolute inset-0 bg-clot/60" @click="helpOpen = false"></div>
+            <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto" x-show="helpOpen" x-transition>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 id="keys-title" class="font-display text-xl">Keyboard shortcuts</h2>
+                    <button type="button" @click="helpOpen = false; focusSearch()" class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100" aria-label="Close">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
+                <p class="text-sm text-zinc-600 mb-4">You can ring up a whole sale without the mouse. A barcode scanner works like typing a code and pressing Enter.</p>
+                @php
+                    $keyGroups = [
+                        'Find & add' => [
+                            ['F2  /', 'Go to search'],
+                            ['↑  ↓', 'Highlight a search result'],
+                            ['Enter', 'Add the scanned or highlighted product'],
+                            ['3*code', 'Type 3* first to add 3 at once'],
+                        ],
+                        'Current sale (search box empty)' => [
+                            ['+  −', 'One more / one less of the highlighted line'],
+                            ['Del', 'Remove the highlighted line'],
+                            ['PgUp  PgDn', 'Highlight the previous / next line'],
+                            ['F3', 'Type an exact quantity (Enter to go back)'],
+                            ['F8', 'Discount (press % to switch amount / percent)'],
+                            ['F4', 'Choose a customer (↑ ↓ Enter)'],
+                        ],
+                        'Pay' => [
+                            ['F9', 'Open payment'],
+                            ['PgUp  PgDn', 'Switch payment method'],
+                            ['Enter', 'Complete the sale (empty cash box = exact amount)'],
+                            ['Enter  P', 'On the receipt: next sale / print'],
+                        ],
+                        'Anywhere' => [
+                            ['Esc', 'Close / go back to search'],
+                            ['?  F1', 'This list'],
+                        ],
+                    ];
+                @endphp
+                <div class="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+                    @foreach ($keyGroups as $group => $rows)
+                        <section>
+                            <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-2">{{ $group }}</h3>
+                            <dl class="space-y-1.5 text-sm">
+                                @foreach ($rows as [$key, $what])
+                                    <div class="flex gap-3">
+                                        <dt class="w-24 shrink-0"><kbd class="font-sans text-xs bg-zinc-100 border border-zinc-200 rounded px-1.5 py-0.5 whitespace-nowrap">{{ $key }}</kbd></dt>
+                                        <dd class="text-zinc-700">{{ $what }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        </section>
+                    @endforeach
+                </div>
             </div>
         </div>
 
