@@ -27,7 +27,9 @@
             <span class="hidden md:inline text-sm text-bone/70">{{ auth()->user()->name }}</span>
             <a href="{{ route('pos.sales.index') }}" class="text-sm px-3 py-1.5 rounded-lg text-bone/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brass">Sales</a>
             @if (auth()->user()->hasAnyRole(['admin', 'manager']))
-                <a href="{{ route('admin.dashboard') }}" class="text-sm px-3 py-1.5 rounded-lg text-bone/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brass">Admin</a>
+                @hasanyrole('admin|manager')
+                    <a href="{{ route('admin.dashboard') }}" class="text-sm px-3 py-1.5 rounded-lg text-bone/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brass">Admin</a>
+                @endhasanyrole
             @endif
         </header>
         <div class="flex-1 min-h-0">

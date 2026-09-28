@@ -26,4 +26,11 @@ return [
     // sent to /install (see RedirectIfNotInstalled) and /install stays open.
     'installed_lock' => storage_path('installed.lock'),
     'installer_redirect' => (bool) env('INSTALLER_REDIRECT', true),
+
+    /*
+     * Live-demo mode (your public preview site ONLY - never a buyer's shop).
+     * Shows one-click demo logins, blocks account/settings changes, and lets
+     * `php artisan demo:reset` wipe and reseed the database. Off by default.
+     */
+    'demo_mode' => (bool) env('DEMO_MODE', false),
 ];

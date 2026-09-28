@@ -43,7 +43,9 @@ use Illuminate\Support\Facades\Route;
 | routes/install.php. All three are registered in bootstrap/app.php.
 */
 
-Route::get('/', fn () => redirect()->route('login'));
+// Signed in: your home for your role (see App\Support\HomeRoute). Otherwise the login page.
+// This used to always go to login, which bounced signed-in users back to "/" forever.
+Route::get('/', fn () => redirect(\App\Support\HomeRoute::for(auth()->user())))->name('home');
 
 Route::middleware(['auth'])->group(function () {
 

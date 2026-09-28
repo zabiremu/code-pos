@@ -94,6 +94,10 @@
     .alert-error {
         @apply rounded-lg bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 px-4 py-2.5 text-sm;
     }
+    /* Live-demo banner (DEMO_MODE only). */
+    .alert-demo {
+        @apply rounded-lg bg-amber-50 text-amber-900 ring-1 ring-inset ring-amber-600/20 px-4 py-2.5 text-sm;
+    }
 
     /* Sidebar - the same vampire-blood panel as the sign-in page, so the
        app and its front door read as one product. */

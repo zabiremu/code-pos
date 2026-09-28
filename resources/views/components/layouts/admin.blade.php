@@ -131,6 +131,12 @@
             </header>
 
             <main class="flex-1 p-4 md:p-6 lg:p-8">
+                @if (config('app.demo_mode'))
+                    <div class="alert-demo mb-4">
+                        <strong>Live demo.</strong> Try anything &mdash; data resets every hour. Settings, staff accounts and passwords are read-only.
+                    </div>
+                @endif
+
                 @if (session('status'))
                     <div class="alert-success mb-4">{{ session('status') }}</div>
                 @endif

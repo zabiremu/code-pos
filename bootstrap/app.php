@@ -32,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // Prepended so nothing else (session, auth, DB) runs on a not-installed copy.
         $middleware->web(prepend: [RedirectIfNotInstalled::class]);
+        $middleware->web(append: [\App\Http\Middleware\DemoGuard::class]);
+        // A signed-in user opening /login etc. goes to their role's home,
+        // not "/" (which used to bounce straight back to /login in a loop).
+        $middleware->redirectUsersTo(fn (\Illuminate\Http\Request $request) => \App\Support\HomeRoute::for($request->user()));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -155,6 +155,15 @@
             .pulse .beat { animation: none; stroke-dashoffset: 0; }
             .pulse .dot { animation: none; opacity: 1; }
         }
+        .demo-logins { margin: 2rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--line); }
+        .demo-title { margin: 0 0 .75rem; font-size: .85rem; font-weight: 600; }
+        .demo-grid { display: grid; gap: .5rem; }
+        .demo-login { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; width: 100%; padding: .7rem .9rem; border: 1px solid var(--line); border-radius: .6rem; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+        .demo-login:hover { border-color: var(--blood); background: #FBF5F5; }
+        .demo-login:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+        .demo-login strong { font-size: .95rem; }
+        .demo-login span { font-size: .8rem; color: var(--ash); }
+        .demo-foot { margin: .75rem 0 0; font-size: .8rem; color: var(--ash); }
     </style>
 </head>
 <body>
@@ -194,6 +203,15 @@
             f.type = show ? 'text' : 'password';
             btn.textContent = show ? 'Hide' : 'Show';
             btn.setAttribute('aria-pressed', show);
+        });
+    });
+    document.querySelectorAll('[data-demo-email]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var form = document.querySelector('form[action$="/login"]');
+            if (!form) return;
+            form.querySelector('[name=email]').value = btn.dataset.demoEmail;
+            form.querySelector('[name=password]').value = btn.dataset.demoPassword;
+            form.submit();
         });
     });
 </script>

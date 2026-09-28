@@ -36,5 +36,25 @@
         <button type="submit" class="submit">Sign in</button>
     </form>
 
-    <p class="note">No account yet? Ask your store admin to add you under Staff.</p>
+    @if (config('app.demo_mode'))
+        {{-- Live demo only: one click fills the form and signs in. --}}
+        <div class="demo-logins">
+            <p class="demo-title">Live demo &mdash; sign in as:</p>
+            <div class="demo-grid">
+                @foreach ([
+                    ['Admin', 'admin@example.com', 'Everything, incl. settings & staff'],
+                    ['Manager', 'manager@example.com', 'Day-to-day running, no admin accounts'],
+                    ['Cashier', 'cashier@example.com', 'Register & sales only'],
+                ] as [$role, $email, $hint])
+                    <button type="button" class="demo-login" data-demo-email="{{ $email }}" data-demo-password="password">
+                        <strong>{{ $role }}</strong>
+                        <span>{{ $hint }}</span>
+                    </button>
+                @endforeach
+            </div>
+            <p class="demo-foot">Password for all: <code>password</code> &middot; Data resets every hour.</p>
+        </div>
+    @else
+        <p class="note">No account yet? Ask your store admin to add you under Staff.</p>
+    @endif
 </x-layouts.auth>

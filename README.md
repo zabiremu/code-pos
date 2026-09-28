@@ -175,6 +175,33 @@ and without mod_rewrite.
 > itself. Re-run `npm run build` and commit the new `public/build/` output
 > any time you change something under `resources/`.
 
+## Live demo (author only)
+
+Your public preview site runs with `DEMO_MODE=true`. **Never set this on a
+buyer's shop**; it's off by default and `.env.example` ships it as `false`.
+
+What it does:
+
+- **One-click logins** on the sign-in page: Admin, Manager and Cashier
+  (`admin@` / `manager@` / `cashier@example.com`, password `password`).
+- **Read-only where it matters**: settings (SMTP, license), staff accounts,
+  your own profile/password and password-reset emails are blocked
+  (`App\Http\Middleware\DemoGuard::BLOCKED`). Everything else, including
+  sales and deleting records, stays open.
+- **Hourly reset**: `php artisan demo:reset` runs `migrate:fresh --seed`
+  (demo logins + sample catalog) and clears uploaded photos. It refuses to
+  run unless `DEMO_MODE=true`, with no override flag.
+- A banner inside the app says it's a demo that resets hourly.
+
+Setting it up on cPanel:
+
+1. Install the demo site normally with the web installer.
+2. In File Manager, edit `.env`: set `DEMO_MODE=true`.
+3. cPanel > Cron Jobs, add (every minute; adjust the path):
+   `* * * * * cd /home/USER/demo.example.com && php artisan schedule:run >> /dev/null 2>&1`
+4. The first reset (which creates the demo logins) runs at the next full
+   hour. To do it now, run `php artisan demo:reset` from cPanel > Terminal.
+
 ## Testing
 
 ```bash
